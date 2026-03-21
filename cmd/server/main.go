@@ -15,6 +15,7 @@ import (
 	"glass-factory/internal/models"
 
 	"github.com/gofiber/fiber/v2"
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
@@ -27,7 +28,7 @@ func main() {
 		log.Fatalf("ошибка открытия базы данных: %v", err)
 	}
 
-	if err := db.AutoMigrate(&models.Vacancy{}, &models.Contact{}); err != nil {
+	if err := db.AutoMigrate(&models.Vacancy{}, &models.Contact{}, &models.AdminUser{}, &models.VacancyView{}); err != nil {
 		log.Fatalf("ошибка миграции базы данных: %v", err)
 	}
 
@@ -50,10 +51,9 @@ func main() {
 }
 
 func newHandler(db *gorm.DB) *handlers.Handler {
-	adminPassword := mustLoadConfig("ADMIN_PASSWORD", "Admin12345")
 	sessionSecret := mustLoadSessionSecret()
 
-	return handlers.New(db, adminPassword, []byte(sessionSecret), 24*time.Hour, appVersion)
+	return handlers.New(db, []byte(sessionSecret), 24*time.Hour, appVersion)
 }
 
 func seedDatabase(db *gorm.DB) error {
@@ -64,6 +64,27 @@ func seedDatabase(db *gorm.DB) error {
 	if contactCount == 0 {
 		contact := models.DefaultContact()
 		if err := db.Create(&contact).Error; err != nil {
+			return err
+		}
+	}
+
+	var userCount int64
+	if err := db.Model(&models.AdminUser{}).Count(&userCount).Error; err != nil {
+		return err
+	}
+	if userCount == 0 {
+		hash, err := bcrypt.GenerateFromPassword([]byte("Admin12345"), bcrypt.DefaultCost)
+		if err != nil {
+			return err
+		}
+
+		adminUser := models.AdminUser{
+			Login:        models.BootstrapAdminLogin,
+			PasswordHash: string(hash),
+			Role:         models.AdminUserRoleAdmin,
+			Active:       true,
+		}
+		if err := db.Create(&adminUser).Error; err != nil {
 			return err
 		}
 	}
@@ -85,20 +106,6 @@ func generateSessionSecret() (string, error) {
 		return "", err
 	}
 	return base64.RawURLEncoding.EncodeToString(buf), nil
-}
-
-func mustLoadConfig(key string, devFallback string) string {
-	value := strings.TrimSpace(os.Getenv(key))
-	if value != "" {
-		return value
-	}
-
-	if os.Getenv("APP_ENV") == "dev" {
-		return devFallback
-	}
-
-	log.Fatalf("не задана обязательная переменная окружения %s", key)
-	return ""
 }
 
 func mustLoadSessionSecret() string {

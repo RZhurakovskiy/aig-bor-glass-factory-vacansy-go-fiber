@@ -5,6 +5,12 @@ import (
 	"time"
 )
 
+const (
+	AdminUserRoleAdmin  = "admin"
+	AdminUserRoleHR     = "hr"
+	BootstrapAdminLogin = "hrautomotive_admin"
+)
+
 type Vacancy struct {
 	ID           uint `gorm:"primaryKey"`
 	SortOrder    int
@@ -34,6 +40,28 @@ type Contact struct {
 	WhatsApp     string
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
+}
+
+type AdminUser struct {
+	ID           uint   `gorm:"primaryKey"`
+	Login        string `gorm:"uniqueIndex;size:191;not null"`
+	PasswordHash string `gorm:"not null"`
+	Role         string `gorm:"size:32;not null"`
+	Active       bool
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
+}
+
+type VacancyView struct {
+	ID        uint `gorm:"primaryKey"`
+	VacancyID uint `gorm:"index;not null"`
+	IPAddress string
+	UserAgent string
+	Referrer  string
+	PagePath  string
+	ViewedAt  time.Time `gorm:"index;not null"`
+	CreatedAt time.Time
+	Vacancy   Vacancy `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;foreignKey:VacancyID"`
 }
 
 func SplitLines(value string) []string {

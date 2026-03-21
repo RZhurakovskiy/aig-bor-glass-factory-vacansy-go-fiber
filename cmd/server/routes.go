@@ -14,6 +14,7 @@ func registerRoutes(app *fiber.App, db *gorm.DB, staticHTTPFS http.FileSystem, s
 	h := newHandler(db)
 
 	app.Get("/api/vacancies", h.GetPublicVacancies)
+	app.Post("/api/metrics/vacancy-view", h.TrackVacancyView)
 	app.Get("/api/contacts", h.GetContacts)
 
 	app.Get("/admin/login", serveLoginPage)
@@ -27,6 +28,10 @@ func registerRoutes(app *fiber.App, db *gorm.DB, staticHTTPFS http.FileSystem, s
 	app.Get("/admin/vacancies/", h.RequireAdmin, serveStaticPage(staticFS, "admin.html"))
 	app.Get("/admin/contacts", h.RequireAdmin, serveStaticPage(staticFS, "admin.html"))
 	app.Get("/admin/contacts/", h.RequireAdmin, serveStaticPage(staticFS, "admin.html"))
+	app.Get("/admin/users", h.RequireAdmin, serveStaticPage(staticFS, "admin.html"))
+	app.Get("/admin/users/", h.RequireAdmin, serveStaticPage(staticFS, "admin.html"))
+	app.Get("/admin/metrics", h.RequireAdmin, serveStaticPage(staticFS, "admin.html"))
+	app.Get("/admin/metrics/", h.RequireAdmin, serveStaticPage(staticFS, "admin.html"))
 	app.Get("/admin/:section", h.RequireAdmin, serveAdminSection(staticFS))
 	app.Get("/admin/:section/", h.RequireAdmin, serveAdminSection(staticFS))
 
@@ -43,6 +48,10 @@ func registerRoutes(app *fiber.App, db *gorm.DB, staticHTTPFS http.FileSystem, s
 	adminAPI.Get("/meta", h.GetAdminMeta)
 	adminAPI.Get("/contacts", h.GetContacts)
 	adminAPI.Put("/contacts", h.UpdateContacts)
+	adminAPI.Get("/users", h.GetAdminUsers)
+	adminAPI.Post("/users", h.CreateAdminUser)
+	adminAPI.Put("/users/:id", h.UpdateAdminUser)
+	adminAPI.Get("/metrics/vacancy-views", h.GetVacancyMetrics)
 
 	app.Use("/", filesystem.New(filesystem.Config{
 		Root:         staticHTTPFS,
@@ -66,7 +75,7 @@ func serveStaticPage(staticFS fs.FS, name string) fiber.Handler {
 func serveAdminSection(staticFS fs.FS) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		switch c.Params("section") {
-		case "vacancies", "contacts":
+		case "vacancies", "contacts", "users", "metrics":
 			return serveStaticPage(staticFS, "admin.html")(c)
 		default:
 			return fiber.ErrNotFound
@@ -84,18 +93,22 @@ func serveLoginPage(c *fiber.Ctx) error {
 	<title>Вход в панель администратора</title>
 	<style>
 		body { margin: 0; font-family: sans-serif; min-height: 100vh; display: grid; place-items: center; background: linear-gradient(135deg, #111, #303030); color: #fff; }
-		form { width: min(420px, calc(100% - 32px)); padding: 32px; border-radius: 24px; background: rgba(255,255,255,0.08); backdrop-filter: blur(16px); }
+		form { width: min(420px, calc(100% - 32px)); padding: 32px; border-radius: 16px; background: rgba(255,255,255,0.08); backdrop-filter: blur(16px); }
 		h1 { margin-top: 0; font-size: 32px; }
 		p { line-height: 1.5; color: rgba(255,255,255,0.76); }
 		label { display: grid; gap: 8px; margin: 20px 0 18px; font-weight: 700; }
-		input { padding: 14px 16px; border-radius: 14px; border: 0; font-size: 16px; }
-		button { width: 100%; padding: 14px 16px; border: 0; border-radius: 999px; background: #ec0000; color: #fff; font-size: 16px; font-weight: 700; cursor: pointer; }
+		input { padding: 14px 16px; border-radius: 10px; border: 0; font-size: 16px; }
+		button { width: 100%; padding: 14px 16px; border: 0; border-radius: 10px; background: #ec0000; color: #fff; font-size: 16px; font-weight: 700; cursor: pointer; }
 	</style>
 </head>
 <body>
 	<form method="post" action="/admin/login">
 		<h1>Панель администратора</h1>
-		<p>Для входа используйте пароль администратора.</p>
+		<p>Для входа используйте логин и пароль администратора.</p>
+		<label>
+			<span>Логин</span>
+			<input type="text" name="login" autocomplete="username" required />
+		</label>
 		<label>
 			<span>Пароль</span>
 			<input type="password" name="password" autocomplete="current-password" required />

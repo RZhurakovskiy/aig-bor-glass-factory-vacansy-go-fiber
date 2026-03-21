@@ -11,6 +11,8 @@ import (
 	"gorm.io/gorm"
 )
 
+const timeLayoutSeconds = "02.01.2006 15:04"
+
 func normalizeMultiline(value string) string {
 	return models.JoinLines(strings.Split(strings.ReplaceAll(value, "\r\n", "\n"), "\n"))
 }

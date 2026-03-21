@@ -37,7 +37,7 @@ type vacancyPayload struct {
 	Requirements string `json:"requirements"`
 	Conditions   string `json:"conditions"`
 	Salary       string `json:"salary"`
-	Active       bool   `json:"active"`
+	Active       *bool  `json:"active"`
 }
 
 type vacancyOrderPayload struct {
@@ -111,7 +111,7 @@ func (h *Handler) CreateVacancy(c *fiber.Ctx) error {
 		Requirements: normalizeMultiline(payload.Requirements),
 		Conditions:   normalizeMultiline(payload.Conditions),
 		Salary:       strings.TrimSpace(payload.Salary),
-		Active:       payload.Active,
+		Active:       payload.Active == nil || *payload.Active,
 		TrashedAt:    nil,
 	}
 
@@ -150,7 +150,9 @@ func (h *Handler) UpdateVacancy(c *fiber.Ctx) error {
 	vacancy.Requirements = normalizeMultiline(payload.Requirements)
 	vacancy.Conditions = normalizeMultiline(payload.Conditions)
 	vacancy.Salary = strings.TrimSpace(payload.Salary)
-	vacancy.Active = payload.Active
+	if payload.Active != nil {
+		vacancy.Active = *payload.Active
+	}
 
 	if err := h.db.Save(&vacancy).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "не удалось сохранить вакансию"})

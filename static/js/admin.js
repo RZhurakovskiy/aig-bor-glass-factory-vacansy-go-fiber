@@ -19,6 +19,15 @@ const elements = {
 	loaderStack: document.getElementById('loaderStack'),
 	vacanciesList: document.getElementById('vacanciesList'),
 	vacanciesEmpty: document.getElementById('vacanciesEmpty'),
+	usersList: document.getElementById('usersList'),
+	usersEmpty: document.getElementById('usersEmpty'),
+	metricsVacanciesList: document.getElementById('metricsVacanciesList'),
+	metricsVacanciesEmpty: document.getElementById('metricsVacanciesEmpty'),
+	metricsEventsList: document.getElementById('metricsEventsList'),
+	metricsEventsEmpty: document.getElementById('metricsEventsEmpty'),
+	metricTotalViews: document.getElementById('metricTotalViews'),
+	metricTodayViews: document.getElementById('metricTodayViews'),
+	metricUniqueIps: document.getElementById('metricUniqueIps'),
 	openTrashButton: document.getElementById('openTrashButton'),
 	openTrashCount: document.getElementById('openTrashCount'),
 	trashVacanciesList: document.getElementById('trashVacanciesList'),
@@ -32,6 +41,12 @@ const elements = {
 	saveVacancyButton: document.getElementById('saveVacancyButton'),
 	resetVacancyButton: document.getElementById('resetVacancyButton'),
 	createVacancyButton: document.getElementById('createVacancyButton'),
+	userForm: document.getElementById('userForm'),
+	userFormTitle: document.getElementById('userFormTitle'),
+	userStatusMessage: document.getElementById('userStatusMessage'),
+	saveUserButton: document.getElementById('saveUserButton'),
+	resetUserButton: document.getElementById('resetUserButton'),
+	createUserButton: document.getElementById('createUserButton'),
 	deleteVacancyModal: document.getElementById('deleteVacancyModal'),
 	deleteVacancyTitle: document.getElementById('deleteVacancyTitle'),
 	deleteVacancyText: document.getElementById('deleteVacancyText'),
@@ -48,6 +63,8 @@ const elements = {
 const state = {
 	vacancies: [],
 	trashVacancies: [],
+	users: [],
+	metrics: null,
 	adminMeta: null,
 	adminMap: null,
 	adminPlacemark: null,
@@ -58,6 +75,7 @@ const state = {
 	ymapsReady: null,
 	themeMode: document.documentElement.dataset.themeMode || 'system',
 	selectedVacancyId: null,
+	selectedUserId: null,
 	pendingDeleteVacancyId: null,
 	pendingDeleteMode: null,
 	loaders: new Map(),
@@ -69,6 +87,7 @@ bootstrap().catch(error => {
 	console.error(error)
 	setStatus('Не удалось загрузить контакты.', true)
 	setVacancyStatus('Не удалось загрузить вакансии.', true)
+	setUserStatus('Не удалось загрузить пользователей.', true)
 	showToast('Не удалось загрузить данные админки.', 'error')
 })
 
@@ -94,6 +113,16 @@ async function bootstrap() {
 			runStartupTask('vacancies-trash', 'Корзина вакансий', () =>
 				refreshTrashVacancies()
 			)
+		)
+	}
+
+	if (isUsersPage() && hasUsersUI()) {
+		tasks.push(runStartupTask('users', 'Пользователи', () => refreshUsers()))
+	}
+
+	if (isMetricsPage() && hasMetricsUI()) {
+		tasks.push(
+			runStartupTask('metrics', 'Метрики просмотров', () => refreshMetrics())
 		)
 	}
 
@@ -152,6 +181,14 @@ function bindEvents() {
 		elements.trashVacanciesList.addEventListener('click', handleTrashListClick)
 	}
 
+	if (isUsersPage() && hasUsersUI()) {
+		elements.userForm.addEventListener('submit', handleUserSubmit)
+		elements.saveUserButton.addEventListener('click', handleUserSubmit)
+		elements.resetUserButton.addEventListener('click', resetUserForm)
+		elements.createUserButton.addEventListener('click', resetUserForm)
+		elements.usersList.addEventListener('click', handleUserListClick)
+	}
+
 	document.addEventListener('click', handleDocumentClick)
 	document.addEventListener('keydown', handleDocumentKeydown)
 }
@@ -173,6 +210,8 @@ function initAdminPage() {
 function getCurrentAdminPage() {
 	const path = window.location.pathname.replace(/\/+$/, '')
 	if (path.endsWith('/contacts')) return 'contacts'
+	if (path.endsWith('/users')) return 'users'
+	if (path.endsWith('/metrics')) return 'metrics'
 	return 'vacancies'
 }
 
@@ -182,6 +221,14 @@ function isVacanciesPage() {
 
 function isContactsPage() {
 	return state.currentPage === 'contacts'
+}
+
+function isUsersPage() {
+	return state.currentPage === 'users'
+}
+
+function isMetricsPage() {
+	return state.currentPage === 'metrics'
 }
 
 async function refreshContacts() {
@@ -399,6 +446,33 @@ async function refreshTrashVacancies() {
 	renderTrashVacancies()
 }
 
+async function refreshUsers() {
+	const users = await api('/api/admin/users')
+	state.users = users
+
+	if (state.selectedUserId && !users.some(user => user.id === state.selectedUserId)) {
+		state.selectedUserId = null
+	}
+
+	renderUsers()
+
+	if (state.selectedUserId) {
+		const selected = findUser(state.selectedUserId)
+		if (selected) {
+			fillUserForm(selected)
+			return
+		}
+	}
+
+	resetUserForm()
+}
+
+async function refreshMetrics() {
+	const metrics = await api('/api/admin/metrics/vacancy-views')
+	state.metrics = metrics
+	renderMetrics()
+}
+
 function renderVacancies() {
 	if (!hasVacancyUI()) return
 
@@ -510,6 +584,120 @@ function renderTrashVacancies() {
 	elements.trashVacanciesList.appendChild(fragment)
 }
 
+function renderUsers() {
+	if (!hasUsersUI()) return
+
+	elements.usersList.innerHTML = ''
+	elements.usersEmpty.hidden = state.users.length > 0
+
+	if (!state.users.length) return
+
+	const fragment = document.createDocumentFragment()
+
+	state.users.forEach(user => {
+		const item = document.createElement('article')
+		item.className = 'admin-vacancy-card'
+		if (user.id === state.selectedUserId) {
+			item.classList.add('is-active')
+		}
+
+		item.innerHTML = `
+			<div class="admin-vacancy-card__content">
+				<div class="admin-vacancy-card__meta">
+					<span class="admin-badge ${user.active ? 'admin-badge_success' : 'admin-badge_muted'}">
+						${user.active ? 'Доступ разрешен' : 'Доступ отключен'}
+					</span>
+					<span class="admin-vacancy-card__order">${escapeHtml(getRoleLabel(user.role))}</span>
+				</div>
+				<h3 class="admin-vacancy-card__title">${escapeHtml(user.login)}</h3>
+				<p class="admin-vacancy-card__summary">Обновлен: ${escapeHtml(user.updatedAt || 'только что')}</p>
+			</div>
+			<div class="admin-vacancy-card__actions">
+				<button class="admin-btn" data-user-action="edit" data-id="${user.id}" type="button">
+					Редактировать
+				</button>
+			</div>
+		`
+
+		fragment.appendChild(item)
+	})
+
+	elements.usersList.appendChild(fragment)
+}
+
+function renderMetrics() {
+	if (!hasMetricsUI()) return
+
+	const metrics = state.metrics || {
+		totalViews: 0,
+		todayViews: 0,
+		uniqueIps: 0,
+		vacancies: [],
+		recentEvents: [],
+	}
+
+	elements.metricTotalViews.textContent = formatNumber(metrics.totalViews)
+	elements.metricTodayViews.textContent = formatNumber(metrics.todayViews)
+	elements.metricUniqueIps.textContent = formatNumber(metrics.uniqueIps)
+
+	elements.metricsVacanciesList.innerHTML = ''
+	elements.metricsEventsList.innerHTML = ''
+	elements.metricsVacanciesEmpty.hidden = metrics.vacancies.length > 0
+	elements.metricsEventsEmpty.hidden = metrics.recentEvents.length > 0
+
+	if (metrics.vacancies.length) {
+		const vacanciesFragment = document.createDocumentFragment()
+
+		metrics.vacancies.forEach(item => {
+			const card = document.createElement('article')
+			card.className = 'admin-vacancy-card'
+			card.innerHTML = `
+				<div class="admin-vacancy-card__content">
+					<div class="admin-vacancy-card__meta">
+						<span class="admin-badge ${item.active ? 'admin-badge_success' : 'admin-badge_muted'}">
+							${item.active ? 'На сайте' : 'Скрыта'}
+						</span>
+					</div>
+					<h3 class="admin-vacancy-card__title">${escapeHtml(item.title)}</h3>
+					<p class="admin-vacancy-card__summary">
+						Просмотров: ${escapeHtml(formatNumber(item.viewsCount))}
+						${item.lastViewedAt ? ` • Последний: ${escapeHtml(item.lastViewedAt)}` : ''}
+					</p>
+				</div>
+			`
+			vacanciesFragment.appendChild(card)
+		})
+
+		elements.metricsVacanciesList.appendChild(vacanciesFragment)
+	}
+
+	if (metrics.recentEvents.length) {
+		const eventsFragment = document.createDocumentFragment()
+
+		metrics.recentEvents.forEach(item => {
+			const card = document.createElement('article')
+			card.className = 'admin-vacancy-card'
+			card.innerHTML = `
+				<div class="admin-vacancy-card__content">
+					<div class="admin-vacancy-card__meta">
+						<span class="admin-badge admin-badge_muted">${escapeHtml(item.viewedAt || 'без времени')}</span>
+						<span class="admin-vacancy-card__order">IP ${escapeHtml(item.ipAddress || 'не определен')}</span>
+					</div>
+					<h3 class="admin-vacancy-card__title">${escapeHtml(item.title)}</h3>
+					<p class="admin-vacancy-card__summary">
+						${escapeHtml(item.pagePath || '/')}
+						${item.referrer ? ` • ${escapeHtml(item.referrer)}` : ''}
+					</p>
+					<p class="admin-vacancy-card__summary">${escapeHtml(trimUserAgent(item.userAgent))}</p>
+				</div>
+			`
+			eventsFragment.appendChild(card)
+		})
+
+		elements.metricsEventsList.appendChild(eventsFragment)
+	}
+}
+
 function updateTrashButtonCount() {
 	if (!elements.openTrashCount) return
 
@@ -577,6 +765,22 @@ function handleTrashListClick(event) {
 	}
 }
 
+function handleUserListClick(event) {
+	const button = event.target.closest('[data-user-action]')
+	if (!button) return
+
+	const id = Number(button.dataset.id)
+	if (!id) return
+
+	if (button.dataset.userAction === 'edit') {
+		const user = findUser(id)
+		if (!user) return
+
+		fillUserForm(user)
+		setUserStatus('')
+	}
+}
+
 async function handleVacancySubmit(event) {
 	if (event) {
 		event.preventDefault()
@@ -588,6 +792,7 @@ async function handleVacancySubmit(event) {
 
 	const formData = new FormData(elements.vacancyForm)
 	const vacancyId = Number(formData.get('id') || 0)
+	const currentVacancy = vacancyId ? findVacancy(vacancyId) : null
 	const payload = {
 		title: readText(formData.get('title')),
 		salary: readText(formData.get('salary')),
@@ -596,9 +801,7 @@ async function handleVacancySubmit(event) {
 		duties: joinListEditorItems('duties'),
 		requirements: joinListEditorItems('requirements'),
 		conditions: joinListEditorItems('conditions'),
-		active: vacancyId
-			? Boolean(findVacancy(vacancyId)?.active)
-			: true,
+		active: vacancyId ? currentVacancy?.active : true,
 	}
 
 	elements.saveVacancyButton.disabled = true
@@ -626,6 +829,51 @@ async function handleVacancySubmit(event) {
 		showToast(message, 'error')
 	} finally {
 		elements.saveVacancyButton.disabled = false
+		setButtonLoading(submitButton, false)
+	}
+}
+
+async function handleUserSubmit(event) {
+	if (event) {
+		event.preventDefault()
+	}
+
+	const submitButton =
+		event?.type === 'click' && event.currentTarget instanceof HTMLElement
+			? event.currentTarget
+			: elements.saveUserButton
+
+	const formData = new FormData(elements.userForm)
+	const userId = Number(formData.get('id') || 0)
+	const payload = {
+		login: readText(formData.get('login')),
+		password: String(formData.get('password') ?? '').trim(),
+		role: readText(formData.get('role')),
+		active: formData.get('active') === 'on',
+	}
+
+	elements.saveUserButton.disabled = true
+	setButtonLoading(submitButton, true)
+	setUserStatus(userId ? 'Сохраняю пользователя...' : 'Создаю пользователя...')
+
+	try {
+		const user = await api(userId ? `/api/admin/users/${userId}` : '/api/admin/users', {
+			method: userId ? 'PUT' : 'POST',
+			body: JSON.stringify(payload),
+		})
+
+		state.selectedUserId = user.id
+		await refreshUsers()
+		const message = userId ? 'Пользователь сохранен.' : 'Пользователь создан.'
+		setUserStatus(message)
+		showToast(message)
+	} catch (error) {
+		console.error(error)
+		const message = getErrorMessage(error, 'Не удалось сохранить пользователя.')
+		setUserStatus(message, true)
+		showToast(message, 'error')
+	} finally {
+		elements.saveUserButton.disabled = false
 		setButtonLoading(submitButton, false)
 	}
 }
@@ -1309,6 +1557,13 @@ function setVacancyStatus(message, isError = false) {
 	elements.vacancyStatusMessage.classList.toggle('is-error', isError)
 }
 
+function setUserStatus(message, isError = false) {
+	if (!elements.userStatusMessage) return
+
+	elements.userStatusMessage.textContent = message
+	elements.userStatusMessage.classList.toggle('is-error', isError)
+}
+
 function showToast(message, type = 'success') {
 	if (!elements.toastStack || !message) return
 
@@ -1345,6 +1600,87 @@ function hasVacancyUI() {
 			elements.listEditors.requirements &&
 			elements.listEditors.conditions
 	)
+}
+
+function hasUsersUI() {
+	return Boolean(
+		elements.usersList &&
+			elements.usersEmpty &&
+			elements.userForm &&
+			elements.userFormTitle &&
+			elements.userStatusMessage &&
+			elements.saveUserButton &&
+			elements.resetUserButton &&
+			elements.createUserButton
+	)
+}
+
+function hasMetricsUI() {
+	return Boolean(
+		elements.metricsVacanciesList &&
+			elements.metricsVacanciesEmpty &&
+			elements.metricsEventsList &&
+			elements.metricsEventsEmpty &&
+			elements.metricTotalViews &&
+			elements.metricTodayViews &&
+			elements.metricUniqueIps
+	)
+}
+
+function fillUserForm(user) {
+	if (!hasUsersUI()) return
+
+	state.selectedUserId = user.id
+	elements.userForm.elements.namedItem('id').value = user.id
+	elements.userForm.elements.namedItem('login').value = user.login || ''
+	elements.userForm.elements.namedItem('password').value = ''
+	elements.userForm.elements.namedItem('role').value = user.role || 'admin'
+	const activeField = elements.userForm.elements.namedItem('active')
+	activeField.checked = Boolean(user.active)
+	activeField.disabled = user.login === 'hrautomotive_admin'
+	elements.userFormTitle.textContent = `Редактирование: ${user.login}`
+	renderUsers()
+}
+
+function resetUserForm() {
+	if (!hasUsersUI()) return
+
+	state.selectedUserId = null
+	elements.userForm.reset()
+	elements.userForm.elements.namedItem('id').value = ''
+	elements.userForm.elements.namedItem('role').value = 'admin'
+	const activeField = elements.userForm.elements.namedItem('active')
+	activeField.checked = true
+	activeField.disabled = false
+	elements.userFormTitle.textContent = 'Создание новой учетной записи'
+	setUserStatus('')
+	renderUsers()
+}
+
+function findUser(id) {
+	return state.users.find(user => user.id === id) || null
+}
+
+function getRoleLabel(role) {
+	switch (role) {
+		case 'admin':
+			return 'Администратор'
+		case 'hr':
+			return 'HR'
+		default:
+			return role || 'Роль не указана'
+	}
+}
+
+function formatNumber(value) {
+	return new Intl.NumberFormat('ru-RU').format(Number(value) || 0)
+}
+
+function trimUserAgent(value) {
+	const normalized = readText(value)
+	if (normalized === '') return 'User-Agent не передан'
+	if (normalized.length <= 120) return normalized
+	return normalized.slice(0, 117) + '...'
 }
 
 function setListEditorItems(name, items) {

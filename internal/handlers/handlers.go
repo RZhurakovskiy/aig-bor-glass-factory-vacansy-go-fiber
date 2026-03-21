@@ -10,9 +10,12 @@ import (
 	"strings"
 	"time"
 
+	"glass-factory/internal/models"
+
 	"gorm.io/gorm"
 
 	"github.com/gofiber/fiber/v2"
+	"golang.org/x/crypto/bcrypt"
 )
 
 const (
@@ -21,16 +24,14 @@ const (
 
 type Handler struct {
 	db            *gorm.DB
-	adminPassword string
 	sessionSecret []byte
 	sessionTTL    time.Duration
 	appVersion    string
 }
 
-func New(db *gorm.DB, adminPassword string, sessionSecret []byte, sessionTTL time.Duration, appVersion string) *Handler {
+func New(db *gorm.DB, sessionSecret []byte, sessionTTL time.Duration, appVersion string) *Handler {
 	return &Handler{
 		db:            db,
-		adminPassword: adminPassword,
 		sessionSecret: sessionSecret,
 		sessionTTL:    sessionTTL,
 		appVersion:    appVersion,
@@ -40,7 +41,9 @@ func New(db *gorm.DB, adminPassword string, sessionSecret []byte, sessionTTL tim
 func (h *Handler) RequireAdmin(c *fiber.Ctx) error {
 	token := c.Cookies(AdminCookie)
 	if token != "" {
-		if err := h.validateSessionToken(token); err == nil {
+		user, err := h.getAdminUserFromToken(token)
+		if err == nil {
+			c.Locals("adminUser", user)
 			return c.Next()
 		}
 	}
@@ -58,22 +61,41 @@ func (h *Handler) Login(c *fiber.Ctx) error {
 	expectsJSON := strings.HasPrefix(c.Get("Content-Type"), fiber.MIMEApplicationJSON) ||
 		strings.Contains(c.Get("Accept"), fiber.MIMEApplicationJSON)
 
+	login := strings.TrimSpace(c.FormValue("login"))
 	password := strings.TrimSpace(c.FormValue("password"))
-	if password == "" {
+	if login == "" || password == "" {
 		var payload map[string]string
 		if err := c.BodyParser(&payload); err == nil {
+			if login == "" {
+				login = strings.TrimSpace(payload["login"])
+			}
 			password = strings.TrimSpace(payload["password"])
 		}
 	}
 
-	if password != h.adminPassword {
+	if login == "" || password == "" {
 		if expectsJSON {
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "неверный пароль"})
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "логин и пароль обязательны"})
 		}
-		return c.Status(fiber.StatusUnauthorized).SendString("Неверный пароль")
+		return c.Status(fiber.StatusBadRequest).SendString("Логин и пароль обязательны")
 	}
 
-	token, err := h.createSessionToken()
+	var user models.AdminUser
+	if err := h.db.Where("login = ?", strings.ToLower(login)).First(&user).Error; err != nil {
+		if expectsJSON {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "неверный логин или пароль"})
+		}
+		return c.Status(fiber.StatusUnauthorized).SendString("Неверный логин или пароль")
+	}
+
+	if !user.Active || bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)) != nil {
+		if expectsJSON {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "неверный логин или пароль"})
+		}
+		return c.Status(fiber.StatusUnauthorized).SendString("Неверный логин или пароль")
+	}
+
+	token, err := h.createSessionToken(user.ID)
 	if err != nil {
 		if expectsJSON {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "не удалось создать сессию"})
@@ -111,9 +133,9 @@ func (h *Handler) Logout(c *fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusNoContent)
 }
 
-func (h *Handler) createSessionToken() (string, error) {
+func (h *Handler) createSessionToken(userID uint) (string, error) {
 	expiresAt := time.Now().Add(h.sessionTTL).Unix()
-	payload := strconv.FormatInt(expiresAt, 10)
+	payload := fmt.Sprintf("%d:%d", userID, expiresAt)
 	signature, err := h.signSessionPayload(payload)
 	if err != nil {
 		return "", err
@@ -121,29 +143,48 @@ func (h *Handler) createSessionToken() (string, error) {
 	return payload + "." + signature, nil
 }
 
-func (h *Handler) validateSessionToken(token string) error {
+func (h *Handler) getAdminUserFromToken(token string) (models.AdminUser, error) {
+	var user models.AdminUser
+
 	parts := strings.Split(token, ".")
 	if len(parts) != 2 {
-		return errors.New("invalid token format")
+		return user, errors.New("invalid token format")
 	}
 
-	expiresAt, err := strconv.ParseInt(parts[0], 10, 64)
+	payloadParts := strings.Split(parts[0], ":")
+	if len(payloadParts) != 2 {
+		return user, errors.New("invalid token payload")
+	}
+
+	userID, err := strconv.ParseUint(payloadParts[0], 10, 64)
 	if err != nil {
-		return errors.New("invalid token expiration")
+		return user, errors.New("invalid token user id")
+	}
+
+	expiresAt, err := strconv.ParseInt(payloadParts[1], 10, 64)
+	if err != nil {
+		return user, errors.New("invalid token expiration")
 	}
 	if time.Now().Unix() > expiresAt {
-		return errors.New("token expired")
+		return user, errors.New("token expired")
 	}
 
 	expectedSignature, err := h.signSessionPayload(parts[0])
 	if err != nil {
-		return err
+		return user, err
 	}
 	if !hmac.Equal([]byte(parts[1]), []byte(expectedSignature)) {
-		return errors.New("invalid token signature")
+		return user, errors.New("invalid token signature")
 	}
 
-	return nil
+	if err := h.db.First(&user, uint(userID)).Error; err != nil {
+		return user, err
+	}
+	if !user.Active {
+		return user, errors.New("user inactive")
+	}
+
+	return user, nil
 }
 
 func (h *Handler) signSessionPayload(payload string) (string, error) {

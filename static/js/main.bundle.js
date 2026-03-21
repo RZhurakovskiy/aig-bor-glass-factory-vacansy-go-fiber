@@ -32,6 +32,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 	tabsFilter()
 	selectFilter()
+	initVacancyViewTracking()
 })
 
 async function renderVacancies(onLoaded) {
@@ -82,7 +83,7 @@ async function renderVacancies(onLoaded) {
 				${vacancies
 					.map(
 						(vacancy, index) => `
-							<article class="vacancy-card" data-job="${escapeAttribute(vacancy.title)}">
+							<article class="vacancy-card" data-job="${escapeAttribute(vacancy.title)}" data-vacancy-id="${escapeAttribute(vacancy.id)}">
 								<div class="vacancy-card__header">
 									<div class="vacancy-card__number-block">
 										<span class="vacancy-card__number">${index + 1}.</span>
@@ -104,6 +105,7 @@ async function renderVacancies(onLoaded) {
 									${renderVacancyColumn('Требования', vacancy.requirementsList)}
 									${renderVacancyColumn('Условия', vacancy.conditionsList)}
 								</div>
+								<div class="vacancy-card__view-anchor" id="vacancy-view-anchor-${escapeAttribute(vacancy.id)}" data-vacancy-view-anchor="${escapeAttribute(vacancy.id)}" aria-hidden="true"></div>
 							</article>
 						`
 					)
@@ -117,6 +119,122 @@ async function renderVacancies(onLoaded) {
 			'<div class="vacancy-empty-state vacancy-empty-state_error"><div class="vacancy-empty-state__eyebrow">Ошибка загрузки</div><h3 class="vacancy-empty-state__title">Не удалось загрузить вакансии</h3><p class="vacancy-empty-state__text">Проверьте доступность сервера и обновите страницу.</p></div>'
 		if (typeof onLoaded === 'function') onLoaded()
 	}
+}
+
+function initVacancyViewTracking() {
+	const cards = Array.from(document.querySelectorAll('.vacancy-card[data-vacancy-id]'))
+	if (!cards.length || typeof window.IntersectionObserver !== 'function') return
+
+	const sentViews = new Set()
+	const timers = new Map()
+	const visibleVacancyIds = new Set()
+
+	const getActiveVacancyId = () =>
+		document.querySelector('.vacancy-card.active')?.getAttribute('data-vacancy-id') || ''
+
+	const clearTimer = vacancyId => {
+		const timerId = timers.get(vacancyId)
+		if (timerId) {
+			window.clearTimeout(timerId)
+			timers.delete(vacancyId)
+		}
+	}
+
+	const clearInactiveTimers = activeVacancyId => {
+		timers.forEach((_, vacancyId) => {
+			if (vacancyId !== activeVacancyId) {
+				clearTimer(vacancyId)
+			}
+		})
+	}
+
+	const scheduleView = vacancyId => {
+		if (!vacancyId || sentViews.has(vacancyId) || timers.has(vacancyId)) return
+
+		const timerId = window.setTimeout(async () => {
+			timers.delete(vacancyId)
+			try {
+				const response = await fetch('/api/metrics/vacancy-view', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						Accept: 'application/json',
+					},
+					credentials: 'same-origin',
+					body: JSON.stringify({
+						vacancyId: Number(vacancyId),
+						pagePath: `${window.location.pathname}${window.location.hash || ''}`,
+					}),
+				})
+
+				if (!response.ok) {
+					throw new Error(`Vacancy metric failed: ${response.status}`)
+				}
+
+				sentViews.add(vacancyId)
+			} catch (error) {
+				console.error(error)
+			}
+		}, 10000)
+
+		timers.set(vacancyId, timerId)
+	}
+
+	const syncTracking = vacancyId => {
+		const activeVacancyId = getActiveVacancyId()
+		clearInactiveTimers(activeVacancyId)
+
+		if (
+			vacancyId &&
+			vacancyId === activeVacancyId &&
+			visibleVacancyIds.has(vacancyId)
+		) {
+			scheduleView(vacancyId)
+			return
+		}
+
+		if (vacancyId) {
+			clearTimer(vacancyId)
+		}
+	}
+
+	const observer = new IntersectionObserver(
+		entries => {
+			entries.forEach(entry => {
+				const card = entry.target.closest('.vacancy-card')
+				if (!card) return
+
+				const vacancyId = card.dataset.vacancyId
+				const isVisible = entry.isIntersecting && entry.intersectionRatio >= 0.65
+
+				if (isVisible) visibleVacancyIds.add(vacancyId)
+				else visibleVacancyIds.delete(vacancyId)
+
+				syncTracking(vacancyId)
+			})
+		},
+		{
+			threshold: [0.65],
+		}
+	)
+
+	cards.forEach(card => {
+		const anchor = card.querySelector('[data-vacancy-view-anchor]')
+		if (anchor) {
+			observer.observe(anchor)
+		}
+	})
+
+	document.addEventListener('visibilitychange', () => {
+		if (document.hidden) {
+			timers.forEach((_, vacancyId) => clearTimer(vacancyId))
+		}
+	})
+
+	document.addEventListener('vacancy:active-change', event => {
+		const vacancyId = event.detail?.vacancyId || ''
+		syncTracking(vacancyId)
+	})
 }
 
 function renderVacancyColumn(title, items) {

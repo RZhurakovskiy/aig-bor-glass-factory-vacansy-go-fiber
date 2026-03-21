@@ -1690,6 +1690,15 @@ img {
 	gap: 15px;
 }
 
+.vacancy-card__view-anchor {
+	display: block;
+	width: 100%;
+	height: 1px;
+	margin-top: 1px;
+	opacity: 0;
+	pointer-events: none;
+}
+
 .vacancy-card__description-item h4 {
 	margin-top: 0;
 	font-size: 1.2em;

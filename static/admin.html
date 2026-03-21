@@ -111,6 +111,38 @@
 										>
 									</span>
 								</a>
+								<a
+									class="admin-sidebar__link"
+									data-admin-page-link="users"
+									href="/admin/users"
+								>
+									<span
+										class="admin-sidebar__link-marker"
+										aria-hidden="true"
+									></span>
+									<span class="admin-sidebar__link-body">
+										<span class="admin-sidebar__link-title">Пользователи</span>
+										<span class="admin-sidebar__link-note"
+											>Доступ и роли</span
+										>
+									</span>
+								</a>
+								<a
+									class="admin-sidebar__link"
+									data-admin-page-link="metrics"
+									href="/admin/metrics"
+								>
+									<span
+										class="admin-sidebar__link-marker"
+										aria-hidden="true"
+									></span>
+									<span class="admin-sidebar__link-body">
+										<span class="admin-sidebar__link-title">Метрики</span>
+										<span class="admin-sidebar__link-note"
+											>Просмотры вакансий</span
+										>
+									</span>
+								</a>
 							</nav>
 						</aside>
 
@@ -419,6 +451,189 @@
 											></div>
 										</div>
 									</form>
+								</section>
+							</section>
+
+							<section class="admin-page" data-admin-page="users" hidden>
+								<div class="admin-layout">
+									<section class="admin-section">
+										<div class="admin-section__header">
+											<div>
+												<h2 class="admin-section__title">Пользователи</h2>
+												<p class="admin-section__subtitle">
+													Управление учетными записями админки.
+												</p>
+											</div>
+											<div class="admin-section__actions">
+												<button
+													class="admin-btn admin-btn_primary"
+													id="createUserButton"
+													type="button"
+												>
+													Новый пользователь
+												</button>
+											</div>
+										</div>
+
+										<div class="admin-vacancies-empty" id="usersEmpty" hidden>
+											Пользователей пока нет.
+										</div>
+
+										<div class="admin-vacancies-list" id="usersList"></div>
+									</section>
+
+									<section class="admin-section">
+										<div class="admin-section__header">
+											<div>
+												<h2 class="admin-section__title">Редактор пользователя</h2>
+												<p class="admin-section__subtitle" id="userFormTitle">
+													Создание новой учетной записи
+												</p>
+											</div>
+										</div>
+
+										<form
+											class="admin-form"
+											id="userForm"
+											action="javascript:void(0)"
+										>
+											<input name="id" type="hidden" />
+
+											<div class="admin-form-section">
+												<div class="admin-form-section__head">
+													<h3 class="admin-form-section__title">
+														Данные доступа
+													</h3>
+												</div>
+
+												<label class="admin-field">
+													<span class="admin-field__label">Логин</span>
+													<input
+														class="admin-input"
+														name="login"
+														type="text"
+														autocomplete="username"
+														required
+													/>
+												</label>
+
+												<label class="admin-field">
+													<span class="admin-field__label">Пароль</span>
+													<input
+														class="admin-input"
+														name="password"
+														type="password"
+														autocomplete="new-password"
+														placeholder="Введите новый пароль"
+													/>
+												</label>
+
+												<label class="admin-field">
+													<span class="admin-field__label">Роль</span>
+													<select class="admin-input" name="role" required>
+														<option value="admin">Администратор</option>
+														<option value="hr">HR</option>
+													</select>
+												</label>
+
+												<label class="admin-field_checkbox">
+													<input
+														class="admin-checkbox"
+														name="active"
+														type="checkbox"
+														checked
+													/>
+													<span class="admin-field__label">Разрешить вход</span>
+												</label>
+											</div>
+
+											<div class="admin-actions">
+												<button
+													class="admin-btn admin-btn_primary"
+													id="saveUserButton"
+													type="button"
+												>
+													Сохранить пользователя
+												</button>
+												<button
+													class="admin-btn"
+													id="resetUserButton"
+													type="button"
+												>
+													Очистить форму
+												</button>
+												<div
+													class="admin-status-note admin-status-note_full"
+													id="userStatusMessage"
+													aria-live="polite"
+												></div>
+											</div>
+										</form>
+									</section>
+								</div>
+							</section>
+
+							<section class="admin-page" data-admin-page="metrics" hidden>
+								<div class="admin-layout">
+									<section class="admin-section">
+										<div class="admin-section__header">
+											<div>
+												<h2 class="admin-section__title">Сводка</h2>
+												<p class="admin-section__subtitle">
+													Общее состояние просмотров вакансий на сайте.
+												</p>
+											</div>
+										</div>
+
+										<div class="admin-metrics-grid" id="metricsSummary">
+											<article class="admin-metric-card">
+												<div class="admin-metric-card__label">Всего просмотров</div>
+												<div class="admin-metric-card__value" id="metricTotalViews">0</div>
+											</article>
+											<article class="admin-metric-card">
+												<div class="admin-metric-card__label">Сегодня</div>
+												<div class="admin-metric-card__value" id="metricTodayViews">0</div>
+											</article>
+											<article class="admin-metric-card">
+												<div class="admin-metric-card__label">Уникальных IP</div>
+												<div class="admin-metric-card__value" id="metricUniqueIps">0</div>
+											</article>
+										</div>
+									</section>
+
+									<section class="admin-section">
+										<div class="admin-section__header">
+											<div>
+												<h2 class="admin-section__title">По вакансиям</h2>
+												<p class="admin-section__subtitle">
+													Какие карточки набирают больше всего просмотров.
+												</p>
+											</div>
+										</div>
+
+										<div class="admin-vacancies-empty" id="metricsVacanciesEmpty" hidden>
+											Пока нет зафиксированных просмотров вакансий.
+										</div>
+
+										<div class="admin-vacancies-list" id="metricsVacanciesList"></div>
+									</section>
+								</div>
+
+								<section class="admin-section admin-section_full">
+									<div class="admin-section__header">
+										<div>
+											<h2 class="admin-section__title">Последние просмотры</h2>
+											<p class="admin-section__subtitle">
+												Недавние события по просмотрам карточек вакансий.
+											</p>
+										</div>
+									</div>
+
+									<div class="admin-vacancies-empty" id="metricsEventsEmpty" hidden>
+										Событий просмотров пока нет.
+									</div>
+
+									<div class="admin-vacancies-list" id="metricsEventsList"></div>
 								</section>
 							</section>
 						</div>

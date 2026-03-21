@@ -8,10 +8,23 @@ export function tabsFilter() {
 		return str?.replace(/\s+/g, ' ').trim().toLowerCase()
 	}
 
+	function emitActiveVacancyChange(card) {
+		if (!card) return
+
+		document.dispatchEvent(
+			new CustomEvent('vacancy:active-change', {
+				detail: {
+					vacancyId: card.getAttribute('data-vacancy-id') || '',
+				},
+			})
+		)
+	}
+
 	if (buttons.length > 0 && contents.length > 0) {
 		buttons[0].classList.add('active')
 		contents[0].classList.add('active')
 		if (wrapper) wrapper.style.height = contents[0].offsetHeight + 'px'
+		emitActiveVacancyChange(contents[0])
 	}
 
 	buttons.forEach(button => {
@@ -42,6 +55,7 @@ export function tabsFilter() {
 			requestAnimationFrame(() => {
 				next.classList.add('active')
 				next.classList.remove('entering')
+				emitActiveVacancyChange(next)
 				if (current) {
 					setTimeout(() => current.classList.remove('leaving'), 350)
 				}
@@ -82,6 +96,7 @@ export function tabsFilter() {
 		requestAnimationFrame(() => {
 			next.classList.add('active')
 			next.classList.remove('entering')
+			emitActiveVacancyChange(next)
 			if (current) setTimeout(() => current.classList.remove('leaving'), 350)
 		})
 	})

@@ -390,6 +390,35 @@ body.admin-modal-open {
 	align-content: start;
 }
 
+.admin-metrics-grid {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 12px;
+}
+
+.admin-metric-card {
+	display: grid;
+	gap: 10px;
+	padding: 18px;
+	border: 1px solid var(--admin-border);
+	border-radius: 14px;
+	background: var(--admin-surface-muted);
+	box-shadow: var(--admin-card-shadow);
+}
+
+.admin-metric-card__label {
+	font-size: 13px;
+	font-weight: 700;
+	color: var(--admin-text-muted);
+}
+
+.admin-metric-card__value {
+	font-size: clamp(26px, 3vw, 38px);
+	line-height: 1;
+	font-weight: 800;
+	color: var(--admin-text);
+}
+
 .admin-vacancy-card {
 	flex-direction: column;
 	align-items: stretch;
@@ -1257,6 +1286,10 @@ body.admin-modal-open {
 
 	.admin-section__actions {
 		width: 100%;
+	}
+
+	.admin-metrics-grid {
+		grid-template-columns: 1fr;
 	}
 }
 
