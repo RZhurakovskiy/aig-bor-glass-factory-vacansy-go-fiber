@@ -3,6 +3,7 @@ const elements = {
 	logoutButton: document.getElementById('logoutButton'),
 	saveButton: document.getElementById('saveButton'),
 	statusMessage: document.getElementById('statusMessage'),
+	toastStack: document.getElementById('toastStack'),
 	vacanciesList: document.getElementById('vacanciesList'),
 	vacanciesEmpty: document.getElementById('vacanciesEmpty'),
 	openTrashButton: document.getElementById('openTrashButton'),
@@ -41,6 +42,7 @@ bootstrap().catch(error => {
 	console.error(error)
 	setStatus('Не удалось загрузить контакты.', true)
 	setVacancyStatus('Не удалось загрузить вакансии.', true)
+	showToast('Не удалось загрузить данные админки.', 'error')
 })
 
 async function bootstrap() {
@@ -329,10 +331,14 @@ async function handleVacancySubmit(event) {
 
 		state.selectedVacancyId = vacancy.id
 		await refreshVacancies()
-		setVacancyStatus(vacancyId ? 'Вакансия сохранена.' : 'Вакансия создана.')
+		const message = vacancyId ? 'Вакансия сохранена.' : 'Вакансия создана.'
+		setVacancyStatus(message)
+		showToast(message)
 	} catch (error) {
 		console.error(error)
-		setVacancyStatus(getErrorMessage(error, 'Не удалось сохранить вакансию.'), true)
+		const message = getErrorMessage(error, 'Не удалось сохранить вакансию.')
+		setVacancyStatus(message, true)
+		showToast(message, 'error')
 	} finally {
 		elements.saveVacancyButton.disabled = false
 	}
@@ -376,26 +382,26 @@ async function confirmVacancyDelete() {
 		}
 
 		await Promise.all([refreshVacancies(), refreshTrashVacancies()])
-		setVacancyStatus(
+		const message =
 			mode === 'trash'
 				? 'Вакансия перемещена в корзину.'
 				: mode === 'purge'
 					? 'Вакансия удалена навсегда.'
 					: 'Корзина очищена.'
-		)
+		setVacancyStatus(message)
+		showToast(message)
 	} catch (error) {
 		console.error(error)
-		setVacancyStatus(
-			getErrorMessage(
-				error,
-				mode === 'trash'
-					? 'Не удалось переместить вакансию в корзину.'
-					: mode === 'purge'
-						? 'Не удалось удалить вакансию навсегда.'
-						: 'Не удалось очистить корзину.'
-			),
-			true
+		const message = getErrorMessage(
+			error,
+			mode === 'trash'
+				? 'Не удалось переместить вакансию в корзину.'
+				: mode === 'purge'
+					? 'Не удалось удалить вакансию навсегда.'
+					: 'Не удалось очистить корзину.'
 		)
+		setVacancyStatus(message, true)
+		showToast(message, 'error')
 	}
 }
 
@@ -494,9 +500,12 @@ async function handleRestoreVacancy(id) {
 		await api(`/api/admin/vacancies/${id}/restore`, { method: 'PUT' })
 		await Promise.all([refreshVacancies(), refreshTrashVacancies()])
 		setVacancyStatus('Вакансия восстановлена.')
+		showToast('Вакансия восстановлена.')
 	} catch (error) {
 		console.error(error)
-		setVacancyStatus(getErrorMessage(error, 'Не удалось восстановить вакансию.'), true)
+		const message = getErrorMessage(error, 'Не удалось восстановить вакансию.')
+		setVacancyStatus(message, true)
+		showToast(message, 'error')
 	}
 }
 
@@ -528,13 +537,13 @@ async function moveVacancy(id, direction) {
 		state.vacancies = vacancies
 		renderVacancies()
 		setVacancyStatus('Порядок вакансий сохранён.')
+		showToast('Порядок вакансий сохранён.')
 	} catch (error) {
 		console.error(error)
 		await refreshVacancies()
-		setVacancyStatus(
-			getErrorMessage(error, 'Не удалось изменить порядок вакансий.'),
-			true
-		)
+		const message = getErrorMessage(error, 'Не удалось изменить порядок вакансий.')
+		setVacancyStatus(message, true)
+		showToast(message, 'error')
 	}
 }
 
@@ -615,9 +624,12 @@ async function handleContactsSubmit(event) {
 		})
 
 		setStatus('Контакты сохранены.')
+		showToast('Контакты сохранены.')
 	} catch (error) {
 		console.error(error)
-		setStatus(getErrorMessage(error, 'Не удалось сохранить контакты.'), true)
+		const message = getErrorMessage(error, 'Не удалось сохранить контакты.')
+		setStatus(message, true)
+		showToast(message, 'error')
 	} finally {
 		elements.saveButton.disabled = false
 	}
@@ -676,6 +688,19 @@ function setVacancyStatus(message, isError = false) {
 
 	elements.vacancyStatusMessage.textContent = message
 	elements.vacancyStatusMessage.classList.toggle('is-error', isError)
+}
+
+function showToast(message, type = 'success') {
+	if (!elements.toastStack || !message) return
+
+	const toast = document.createElement('div')
+	toast.className = `admin-toast admin-toast_${type}`
+	toast.textContent = message
+	elements.toastStack.appendChild(toast)
+
+	window.setTimeout(() => {
+		toast.remove()
+	}, 3200)
 }
 
 function hasVacancyUI() {
