@@ -183,41 +183,49 @@
 							</div>
 
 							<form class="admin-form" id="contactsForm" action="javascript:void(0)">
-								<label class="admin-field">
-									<span class="admin-field__label">Телефоны</span>
-									<textarea
-										class="admin-input admin-textarea"
-										name="phones"
-										placeholder="Один телефон на строку"
-									></textarea>
-								</label>
+								<div class="admin-form-section">
+									<div class="admin-form-section__head">
+										<h3 class="admin-form-section__title">Основные контакты</h3>
+									</div>
 
-								<div class="admin-form__grid">
 									<label class="admin-field">
-										<span class="admin-field__label">E-mail</span>
-										<input class="admin-input" name="email" type="email" />
+										<span class="admin-field__label">Телефоны</span>
+										<textarea
+											class="admin-input admin-textarea"
+											name="phones"
+											placeholder="Один телефон на строку"
+										></textarea>
 									</label>
-									<label class="admin-field">
-										<span class="admin-field__label">Адрес</span>
-										<input class="admin-input" name="address" type="text" />
-									</label>
+
+									<div class="admin-form__grid">
+										<label class="admin-field">
+											<span class="admin-field__label">E-mail</span>
+											<input class="admin-input" name="email" type="email" />
+										</label>
+									</div>
 								</div>
 
-								<div class="admin-form__grid">
+								<div class="admin-form-section">
+									<div class="admin-form-section__head">
+										<h3 class="admin-form-section__title">Соцсети и мессенджеры</h3>
+									</div>
+
+									<div class="admin-form__grid">
+										<label class="admin-field">
+											<span class="admin-field__label">VK</span>
+											<input class="admin-input" name="vk" type="url" />
+										</label>
+										<label class="admin-field">
+											<span class="admin-field__label">Telegram</span>
+											<input class="admin-input" name="telegram" type="url" />
+										</label>
+									</div>
+
 									<label class="admin-field">
-										<span class="admin-field__label">VK</span>
-										<input class="admin-input" name="vk" type="url" />
-									</label>
-									<label class="admin-field">
-										<span class="admin-field__label">Telegram</span>
-										<input class="admin-input" name="telegram" type="url" />
+										<span class="admin-field__label">WhatsApp</span>
+										<input class="admin-input" name="whatsapp" type="url" />
 									</label>
 								</div>
-
-								<label class="admin-field">
-									<span class="admin-field__label">WhatsApp</span>
-									<input class="admin-input" name="whatsapp" type="url" />
-								</label>
 
 								<div class="admin-actions">
 									<button class="admin-btn admin-btn_primary" id="saveButton" type="button">

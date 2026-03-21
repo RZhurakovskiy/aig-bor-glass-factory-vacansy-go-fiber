@@ -19,6 +19,7 @@ const elements = {
 	resetVacancyButton: document.getElementById('resetVacancyButton'),
 	createVacancyButton: document.getElementById('createVacancyButton'),
 	deleteVacancyModal: document.getElementById('deleteVacancyModal'),
+	deleteVacancyTitle: document.getElementById('deleteVacancyTitle'),
 	deleteVacancyText: document.getElementById('deleteVacancyText'),
 	confirmDeleteVacancyButton: document.getElementById('confirmDeleteVacancyButton'),
 	cancelDeleteVacancyButton: document.getElementById('cancelDeleteVacancyButton'),
@@ -33,6 +34,7 @@ const elements = {
 const state = {
 	vacancies: [],
 	trashVacancies: [],
+	contactsAddress: '',
 	selectedVacancyId: null,
 	pendingDeleteVacancyId: null,
 	pendingDeleteMode: null,
@@ -109,9 +111,9 @@ function bindEvents() {
 async function refreshContacts() {
 	const contacts = await api('/api/admin/contacts')
 
+	state.contactsAddress = contacts.address || ''
 	elements.contactsForm.elements.namedItem('phones').value = contacts.phones || ''
 	elements.contactsForm.elements.namedItem('email').value = contacts.email || ''
-	elements.contactsForm.elements.namedItem('address').value = contacts.address || ''
 	elements.contactsForm.elements.namedItem('vk').value = contacts.vk || ''
 	elements.contactsForm.elements.namedItem('telegram').value =
 		contacts.telegram || ''
@@ -410,6 +412,9 @@ function openDeleteVacancyModal(vacancy, mode) {
 
 	state.pendingDeleteVacancyId = vacancy.id
 	state.pendingDeleteMode = mode
+	if (elements.deleteVacancyTitle) {
+		elements.deleteVacancyTitle.textContent = 'Удалить вакансию?'
+	}
 	elements.confirmDeleteVacancyButton.textContent =
 		mode === 'trash' ? 'В корзину' : 'Удалить навсегда'
 	elements.deleteVacancyText.textContent =
@@ -425,6 +430,9 @@ function closeDeleteVacancyModal() {
 
 	state.pendingDeleteVacancyId = null
 	state.pendingDeleteMode = null
+	if (elements.deleteVacancyTitle) {
+		elements.deleteVacancyTitle.textContent = 'Удалить вакансию?'
+	}
 	elements.confirmDeleteVacancyButton.textContent = 'Удалить'
 	elements.deleteVacancyModal.hidden = true
 	syncModalState()
@@ -478,6 +486,9 @@ function handleEmptyTrashClick() {
 
 	state.pendingDeleteVacancyId = 0
 	state.pendingDeleteMode = 'empty-trash'
+	if (elements.deleteVacancyTitle) {
+		elements.deleteVacancyTitle.textContent = 'Очистить корзину?'
+	}
 	elements.confirmDeleteVacancyButton.textContent = 'Очистить корзину'
 	elements.deleteVacancyText.textContent =
 		'Все вакансии из корзины будут удалены навсегда без возможности восстановления.'
@@ -616,7 +627,7 @@ async function handleContactsSubmit(event) {
 			body: JSON.stringify({
 				phones: readText(formData.get('phones')),
 				email: readText(formData.get('email')),
-				address: readText(formData.get('address')),
+				address: state.contactsAddress,
 				vk: readText(formData.get('vk')),
 				telegram: readText(formData.get('telegram')),
 				whatsapp: readText(formData.get('whatsapp')),
@@ -693,14 +704,19 @@ function setVacancyStatus(message, isError = false) {
 function showToast(message, type = 'success') {
 	if (!elements.toastStack || !message) return
 
+	const duration = 3200
 	const toast = document.createElement('div')
 	toast.className = `admin-toast admin-toast_${type}`
 	toast.textContent = message
+	toast.style.setProperty('--toast-duration', `${duration}ms`)
 	elements.toastStack.appendChild(toast)
 
 	window.setTimeout(() => {
-		toast.remove()
-	}, 3200)
+		toast.classList.add('is-leaving')
+		window.setTimeout(() => {
+			toast.remove()
+		}, 240)
+	}, duration)
 }
 
 function hasVacancyUI() {
