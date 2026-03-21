@@ -9,19 +9,23 @@
 	<body class="admin-body">
 		<main class="admin-main">
 			<div class="admin-shell">
-				<section class="admin-panel">
-					<div class="admin-panel__header">
-						<div>
-							<h1 class="admin-panel__title">Панель администратора</h1>
-							<p class="admin-panel__subtitle">
-								Управление вакансиями и контактами сайта.
-							</p>
-						</div>
+				<header class="admin-topbar">
+					<div class="admin-topbar__content">
+						<div class="admin-topbar__eyebrow">Панель управления</div>
+						<h1 class="admin-topbar__title">Панель администратора</h1>
+						<p class="admin-topbar__subtitle">
+							Управление вакансиями и контактами сайта.
+						</p>
+					</div>
+					<div class="admin-topbar__actions">
+						<div class="admin-topbar__chip">HR / Контент</div>
 						<button class="admin-btn admin-btn_ghost" id="logoutButton" type="button">
 							Выйти
 						</button>
 					</div>
+				</header>
 
+				<section class="admin-panel">
 					<div class="admin-layout">
 						<section class="admin-section">
 							<div class="admin-section__header">

@@ -46,6 +46,70 @@ body.admin-modal-open {
 	margin: 0 auto;
 }
 
+.admin-topbar {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 20px;
+	padding: 26px 28px;
+	margin-bottom: 20px;
+	border: 1px solid #2d2d2d;
+	border-radius: 22px;
+	background:
+		linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0) 46%),
+		#2d2d2d;
+	box-shadow:
+		0 18px 44px rgba(15, 23, 42, 0.06),
+		0 1px 0 rgba(255, 255, 255, 0.08) inset;
+}
+
+.admin-topbar__content {
+	display: grid;
+	gap: 8px;
+}
+
+.admin-topbar__actions {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	flex-wrap: wrap;
+	justify-content: flex-end;
+}
+
+.admin-topbar__eyebrow,
+.admin-topbar__chip {
+	display: inline-flex;
+	align-items: center;
+	min-height: 32px;
+	padding: 0 12px;
+	border: 1px solid rgba(255, 255, 255, 0.16);
+	border-radius: 999px;
+	background: rgba(255, 255, 255, 0.06);
+	font-size: 12px;
+	font-weight: 700;
+	letter-spacing: 0.02em;
+	color: rgba(255, 255, 255, 0.72);
+}
+
+.admin-topbar__eyebrow {
+	justify-self: start;
+}
+
+.admin-topbar__title {
+	margin: 0;
+	font-size: 36px;
+	line-height: 1.02;
+	letter-spacing: -0.03em;
+	color: #ffffff;
+}
+
+.admin-topbar__subtitle {
+	margin: 0;
+	font-size: 16px;
+	line-height: 1.5;
+	color: rgba(255, 255, 255, 0.72);
+}
+
 .admin-panel {
 	padding: 28px;
 	border: 1px solid var(--admin-border);
@@ -56,7 +120,6 @@ body.admin-modal-open {
 		0 1px 0 rgba(255, 255, 255, 0.7) inset;
 }
 
-.admin-panel__header,
 .admin-section__header,
 .admin-actions,
 .admin-section__actions,
@@ -67,7 +130,6 @@ body.admin-modal-open {
 	display: flex;
 }
 
-.admin-panel__header,
 .admin-section__header,
 .admin-actions,
 .admin-section__actions,
@@ -75,29 +137,17 @@ body.admin-modal-open {
 	justify-content: space-between;
 }
 
-.admin-panel__header,
 .admin-section__header,
 .admin-section__actions {
 	align-items: flex-start;
 	gap: 16px;
 }
 
-.admin-panel__header {
-	margin-bottom: 24px;
-}
-
-.admin-panel__title,
 .admin-section__title,
 .admin-vacancy-card__title {
 	margin: 0;
 }
 
-.admin-panel__title {
-	font-size: 34px;
-	line-height: 1.05;
-}
-
-.admin-panel__subtitle,
 .admin-section__subtitle,
 .admin-vacancy-card__summary,
 .admin-vacancy-card__order,
@@ -106,7 +156,6 @@ body.admin-modal-open {
 	color: var(--admin-muted);
 }
 
-.admin-panel__subtitle,
 .admin-section__subtitle {
 	margin: 8px 0 0;
 	line-height: 1.5;
@@ -538,7 +587,10 @@ body.admin-modal-open {
 		padding: 18px;
 	}
 
-	.admin-panel__header,
+	.admin-topbar {
+		padding: 20px 18px;
+	}
+
 	.admin-section__header,
 	.admin-form__grid,
 	.admin-vacancy-card {
@@ -546,7 +598,7 @@ body.admin-modal-open {
 		flex-direction: column;
 	}
 
-	.admin-panel__title {
+	.admin-topbar__title {
 		font-size: 28px;
 	}
 
@@ -554,11 +606,15 @@ body.admin-modal-open {
 		font-size: 22px;
 	}
 
-	.admin-panel__subtitle,
+	.admin-topbar__subtitle,
 	.admin-section__subtitle {
 		margin-top: 6px;
 		font-size: 14px;
 		line-height: 1.4;
+	}
+
+	.admin-topbar__actions {
+		justify-content: flex-start;
 	}
 
 	.admin-form {
