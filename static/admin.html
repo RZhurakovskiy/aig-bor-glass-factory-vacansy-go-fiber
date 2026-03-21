@@ -6,11 +6,14 @@
 		<title>Панель администратора</title>
 		<script>
 			;(() => {
-				const storageKey = 'admin-theme-mode'
+				const storageKey = "admin-theme-mode"
 				const root = document.documentElement
-				const mode = localStorage.getItem(storageKey) || 'light'
-				const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-				const resolved = mode === 'system' ? (prefersDark ? 'dark' : 'light') : mode
+				const mode = localStorage.getItem(storageKey) || "light"
+				const prefersDark = window.matchMedia(
+					"(prefers-color-scheme: dark)"
+				).matches
+				const resolved =
+					mode === "system" ? (prefersDark ? "dark" : "light") : mode
 				root.dataset.themeMode = mode
 				root.dataset.theme = resolved
 				root.style.colorScheme = resolved
@@ -31,7 +34,11 @@
 					</div>
 					<div class="admin-topbar__actions">
 						<div class="admin-topbar__chip">HR / Контент</div>
-						<button class="admin-btn admin-btn_ghost" id="logoutButton" type="button">
+						<button
+							class="admin-btn admin-btn_ghost"
+							id="logoutButton"
+							type="button"
+						>
 							Выйти
 						</button>
 					</div>
@@ -39,18 +46,23 @@
 
 				<section class="admin-panel">
 					<div class="admin-workspace">
-						<aside class="admin-sidebar" aria-label="Разделы CRM">
-							<div class="admin-sidebar__label">Разделы CRM</div>
+						<aside class="admin-sidebar" aria-label="Разделы">
+							<div class="admin-sidebar__label">Разделы</div>
 							<nav class="admin-sidebar__nav">
 								<a
 									class="admin-sidebar__link"
 									data-admin-page-link="vacancies"
 									href="/admin/vacancies"
 								>
-									<span class="admin-sidebar__link-marker" aria-hidden="true"></span>
+									<span
+										class="admin-sidebar__link-marker"
+										aria-hidden="true"
+									></span>
 									<span class="admin-sidebar__link-body">
 										<span class="admin-sidebar__link-title">Вакансии</span>
-										<span class="admin-sidebar__link-note">Управление списком</span>
+										<span class="admin-sidebar__link-note"
+											>Управление списком</span
+										>
 									</span>
 								</a>
 								<a
@@ -58,10 +70,15 @@
 									data-admin-page-link="contacts"
 									href="/admin/contacts"
 								>
-									<span class="admin-sidebar__link-marker" aria-hidden="true"></span>
+									<span
+										class="admin-sidebar__link-marker"
+										aria-hidden="true"
+									></span>
 									<span class="admin-sidebar__link-body">
 										<span class="admin-sidebar__link-title">Контакты</span>
-										<span class="admin-sidebar__link-note">Телефоны, соцсети и карта</span>
+										<span class="admin-sidebar__link-note"
+											>Телефоны, соцсети и карта</span
+										>
 									</span>
 								</a>
 							</nav>
@@ -71,232 +88,307 @@
 							<section class="admin-page" data-admin-page="vacancies">
 								<div class="admin-layout">
 									<section class="admin-section">
-							<div class="admin-section__header">
-								<div>
-									<h2 class="admin-section__title">Вакансии</h2>
-								</div>
-								<div class="admin-section__actions">
-									<button class="admin-btn" id="openTrashButton" type="button">
-										Корзина
-										<span class="admin-btn__count" id="openTrashCount" hidden>0</span>
-									</button>
-									<button
-										class="admin-btn admin-btn_primary"
-										id="createVacancyButton"
-										type="button"
-									>
-										Новая вакансия
-									</button>
-								</div>
-							</div>
-
-							<div class="admin-vacancies-empty" id="vacanciesEmpty" hidden>
-								Сейчас вакансий нет. Добавьте первую запись через форму справа.
-							</div>
-
-							<div class="admin-vacancies-list" id="vacanciesList"></div>
-						</section>
-
-						<section class="admin-section">
-							<div class="admin-section__header">
-								<div>
-									<h2 class="admin-section__title">Редактор вакансии</h2>
-									<p class="admin-section__subtitle" id="vacancyFormTitle">
-										Создание новой вакансии
-									</p>
-								</div>
-							</div>
-
-							<form class="admin-form" id="vacancyForm" action="javascript:void(0)">
-								<input name="id" type="hidden" />
-
-								<div class="admin-form-section">
-									<div class="admin-form-section__head">
-										<h3 class="admin-form-section__title">Основное</h3>
-									</div>
-
-									<label class="admin-field">
-										<span class="admin-field__label">Название</span>
-										<input class="admin-input" name="title" type="text" required />
-									</label>
-
-									<label class="admin-field">
-										<span class="admin-field__label">Зарплата</span>
-										<input class="admin-input" name="salary" type="text" />
-									</label>
-								</div>
-
-								<div class="admin-form-section">
-									<div class="admin-form-section__head">
-										<h3 class="admin-form-section__title">Описание</h3>
-									</div>
-
-									<div class="admin-field">
-										<div class="admin-field__head">
-											<span class="admin-field__label">График / короткие условия</span>
+										<div class="admin-section__header">
+											<div>
+												<h2 class="admin-section__title">Вакансии</h2>
+											</div>
+											<div class="admin-section__actions">
+												<button
+													class="admin-btn"
+													id="openTrashButton"
+													type="button"
+												>
+													Корзина
+													<span
+														class="admin-btn__count"
+														id="openTrashCount"
+														hidden
+														>0</span
+													>
+												</button>
+												<button
+													class="admin-btn admin-btn_primary"
+													id="createVacancyButton"
+													type="button"
+												>
+													Новая вакансия
+												</button>
+											</div>
 										</div>
-										<div class="admin-list-editor" data-list-editor="schedule"></div>
-										<button
-											class="admin-btn admin-btn_compact admin-btn_add"
-											data-add-list-item="schedule"
-											type="button"
+
+										<div
+											class="admin-vacancies-empty"
+											id="vacanciesEmpty"
+											hidden
 										>
-											Добавить пункт
-										</button>
-									</div>
-								</div>
-
-								<div class="admin-form-section">
-									<div class="admin-form-section__head">
-										<h3 class="admin-form-section__title">Подробности</h3>
-									</div>
-
-									<div class="admin-field">
-										<div class="admin-field__head">
-											<span class="admin-field__label">Обязанности</span>
+											Сейчас вакансий нет. Добавьте первую запись через форму
+											справа.
 										</div>
-										<div class="admin-list-editor" data-list-editor="duties"></div>
-										<button
-											class="admin-btn admin-btn_compact admin-btn_add"
-											data-add-list-item="duties"
-											type="button"
-										>
-											Добавить пункт
-										</button>
-									</div>
 
-									<div class="admin-field">
-										<div class="admin-field__head">
-											<span class="admin-field__label">Требования</span>
+										<div class="admin-vacancies-list" id="vacanciesList"></div>
+									</section>
+
+									<section class="admin-section">
+										<div class="admin-section__header">
+											<div>
+												<h2 class="admin-section__title">Редактор вакансии</h2>
+												<p
+													class="admin-section__subtitle"
+													id="vacancyFormTitle"
+												>
+													Создание новой вакансии
+												</p>
+											</div>
 										</div>
-										<div class="admin-list-editor" data-list-editor="requirements"></div>
-										<button
-											class="admin-btn admin-btn_compact admin-btn_add"
-											data-add-list-item="requirements"
-											type="button"
-										>
-											Добавить пункт
-										</button>
-									</div>
 
-									<div class="admin-field">
-										<div class="admin-field__head">
-											<span class="admin-field__label">Условия</span>
-										</div>
-										<div class="admin-list-editor" data-list-editor="conditions"></div>
-										<button
-											class="admin-btn admin-btn_compact admin-btn_add"
-											data-add-list-item="conditions"
-											type="button"
+										<form
+											class="admin-form"
+											id="vacancyForm"
+											action="javascript:void(0)"
 										>
-											Добавить пункт
-										</button>
-									</div>
-								</div>
+											<input name="id" type="hidden" />
 
-								<div class="admin-actions">
-									<button
-										class="admin-btn admin-btn_primary"
-										id="saveVacancyButton"
-										type="button"
-									>
-										Сохранить вакансию
-									</button>
-									<button class="admin-btn" id="resetVacancyButton" type="button">
-										Очистить форму
-									</button>
-									<div
-										class="admin-status-note admin-status-note_full"
-										id="vacancyStatusMessage"
-										aria-live="polite"
-									></div>
-								</div>
-							</form>
+											<div class="admin-form-section">
+												<div class="admin-form-section__head">
+													<h3 class="admin-form-section__title">Основное</h3>
+												</div>
+
+												<label class="admin-field">
+													<span class="admin-field__label">Название</span>
+													<input
+														class="admin-input"
+														name="title"
+														type="text"
+														required
+													/>
+												</label>
+
+												<label class="admin-field">
+													<span class="admin-field__label">Зарплата</span>
+													<input
+														class="admin-input"
+														name="salary"
+														type="text"
+													/>
+												</label>
+											</div>
+
+											<div class="admin-form-section">
+												<div class="admin-form-section__head">
+													<h3 class="admin-form-section__title">Описание</h3>
+												</div>
+
+												<div class="admin-field">
+													<div class="admin-field__head">
+														<span class="admin-field__label"
+															>График / короткие условия</span
+														>
+													</div>
+													<div
+														class="admin-list-editor"
+														data-list-editor="schedule"
+													></div>
+													<button
+														class="admin-btn admin-btn_compact admin-btn_add"
+														data-add-list-item="schedule"
+														type="button"
+													>
+														Добавить пункт
+													</button>
+												</div>
+											</div>
+
+											<div class="admin-form-section">
+												<div class="admin-form-section__head">
+													<h3 class="admin-form-section__title">Подробности</h3>
+												</div>
+
+												<div class="admin-field">
+													<div class="admin-field__head">
+														<span class="admin-field__label">Обязанности</span>
+													</div>
+													<div
+														class="admin-list-editor"
+														data-list-editor="duties"
+													></div>
+													<button
+														class="admin-btn admin-btn_compact admin-btn_add"
+														data-add-list-item="duties"
+														type="button"
+													>
+														Добавить пункт
+													</button>
+												</div>
+
+												<div class="admin-field">
+													<div class="admin-field__head">
+														<span class="admin-field__label">Требования</span>
+													</div>
+													<div
+														class="admin-list-editor"
+														data-list-editor="requirements"
+													></div>
+													<button
+														class="admin-btn admin-btn_compact admin-btn_add"
+														data-add-list-item="requirements"
+														type="button"
+													>
+														Добавить пункт
+													</button>
+												</div>
+
+												<div class="admin-field">
+													<div class="admin-field__head">
+														<span class="admin-field__label">Условия</span>
+													</div>
+													<div
+														class="admin-list-editor"
+														data-list-editor="conditions"
+													></div>
+													<button
+														class="admin-btn admin-btn_compact admin-btn_add"
+														data-add-list-item="conditions"
+														type="button"
+													>
+														Добавить пункт
+													</button>
+												</div>
+											</div>
+
+											<div class="admin-actions">
+												<button
+													class="admin-btn admin-btn_primary"
+													id="saveVacancyButton"
+													type="button"
+												>
+													Сохранить вакансию
+												</button>
+												<button
+													class="admin-btn"
+													id="resetVacancyButton"
+													type="button"
+												>
+													Очистить форму
+												</button>
+												<div
+													class="admin-status-note admin-status-note_full"
+													id="vacancyStatusMessage"
+													aria-live="polite"
+												></div>
+											</div>
+										</form>
 									</section>
 								</div>
 							</section>
 
 							<section class="admin-page" data-admin-page="contacts" hidden>
 								<section class="admin-section admin-section_full">
-							<div class="admin-section__header">
-								<div>
-									<h2 class="admin-section__title">Контакты сайта</h2>
-								</div>
-							</div>
-
-							<form class="admin-form" id="contactsForm" action="javascript:void(0)">
-								<div class="admin-form-section">
-									<div class="admin-form-section__head">
-										<h3 class="admin-form-section__title">Основные контакты</h3>
+									<div class="admin-section__header">
+										<div>
+											<h2 class="admin-section__title">Контакты сайта</h2>
+										</div>
 									</div>
 
-									<label class="admin-field">
-										<span class="admin-field__label">Телефоны</span>
-										<textarea
-											class="admin-input admin-textarea"
-											name="phones"
-											placeholder="Один телефон на строку"
-										></textarea>
-									</label>
+									<form
+										class="admin-form"
+										id="contactsForm"
+										action="javascript:void(0)"
+									>
+										<div class="admin-form-section">
+											<div class="admin-form-section__head">
+												<h3 class="admin-form-section__title">
+													Основные контакты
+												</h3>
+											</div>
 
-									<div class="admin-form__grid">
-										<label class="admin-field">
-											<span class="admin-field__label">E-mail</span>
-											<input class="admin-input" name="email" type="email" />
-										</label>
-									</div>
-								</div>
+											<label class="admin-field">
+												<span class="admin-field__label">Телефоны</span>
+												<textarea
+													class="admin-input admin-textarea"
+													name="phones"
+													placeholder="Один телефон на строку"
+												></textarea>
+											</label>
 
-								<div class="admin-form-section">
-									<div class="admin-form-section__head">
-										<h3 class="admin-form-section__title">Соцсети и мессенджеры</h3>
-									</div>
+											<div class="admin-form__grid">
+												<label class="admin-field">
+													<span class="admin-field__label">E-mail</span>
+													<input
+														class="admin-input"
+														name="email"
+														type="email"
+													/>
+												</label>
+											</div>
+										</div>
 
-									<div class="admin-form__grid">
-										<label class="admin-field">
-											<span class="admin-field__label">VK</span>
-											<input class="admin-input" name="vk" type="url" />
-										</label>
-										<label class="admin-field">
-											<span class="admin-field__label">Telegram</span>
-											<input class="admin-input" name="telegram" type="url" />
-										</label>
-									</div>
+										<div class="admin-form-section">
+											<div class="admin-form-section__head">
+												<h3 class="admin-form-section__title">
+													Соцсети и мессенджеры
+												</h3>
+											</div>
 
-									<label class="admin-field">
-										<span class="admin-field__label">WhatsApp</span>
-										<input class="admin-input" name="whatsapp" type="url" />
-									</label>
-								</div>
+											<div class="admin-form__grid">
+												<label class="admin-field">
+													<span class="admin-field__label">VK</span>
+													<input class="admin-input" name="vk" type="url" />
+												</label>
+												<label class="admin-field">
+													<span class="admin-field__label">Telegram</span>
+													<input
+														class="admin-input"
+														name="telegram"
+														type="url"
+													/>
+												</label>
+											</div>
 
-								<div class="admin-form-section">
-									<div class="admin-form-section__head">
-										<h3 class="admin-form-section__title">Карта</h3>
-									</div>
+											<label class="admin-field">
+												<span class="admin-field__label">WhatsApp</span>
+												<input class="admin-input" name="whatsapp" type="url" />
+											</label>
+										</div>
 
-									<label class="admin-field">
-										<span class="admin-field__label">Ссылка на Яндекс.Карты</span>
-										<input
-											class="admin-input"
-											name="mapUrl"
-											type="url"
-											placeholder="https://yandex.ru/maps/..."
-										/>
-									</label>
+										<div class="admin-form-section">
+											<div class="admin-form-section__head">
+												<h3 class="admin-form-section__title">Карта</h3>
+											</div>
 
-									<div class="admin-map-note">
-										Двигайте метку мышкой или кликните по карте, чтобы обновить точку.
-									</div>
-									<div class="admin-map-preview" id="adminMapPreview"></div>
-								</div>
+											<label class="admin-field">
+												<span class="admin-field__label"
+													>Ссылка на Яндекс.Карты</span
+												>
+												<input
+													class="admin-input"
+													name="mapUrl"
+													type="url"
+													placeholder="https://yandex.ru/maps/..."
+												/>
+											</label>
 
-								<div class="admin-actions">
-									<button class="admin-btn admin-btn_primary" id="saveButton" type="button">
-										Сохранить контакты
-									</button>
-									<div class="admin-status-note" id="statusMessage" aria-live="polite"></div>
-								</div>
-							</form>
+											<div class="admin-map-note">
+												Двигайте метку мышкой или кликните по карте, чтобы
+												обновить точку.
+											</div>
+											<div class="admin-map-preview" id="adminMapPreview"></div>
+										</div>
+
+										<div class="admin-actions">
+											<button
+												class="admin-btn admin-btn_primary"
+												id="saveButton"
+												type="button"
+											>
+												Сохранить контакты
+											</button>
+											<div
+												class="admin-status-note"
+												id="statusMessage"
+												aria-live="polite"
+											></div>
+										</div>
+									</form>
 								</section>
 							</section>
 						</div>
@@ -313,13 +405,23 @@
 				aria-modal="true"
 				aria-labelledby="deleteVacancyTitle"
 			>
-				<h2 class="admin-modal__title" id="deleteVacancyTitle">Удалить вакансию?</h2>
+				<h2 class="admin-modal__title" id="deleteVacancyTitle">
+					Удалить вакансию?
+				</h2>
 				<p class="admin-modal__text" id="deleteVacancyText"></p>
 				<div class="admin-modal__actions">
-					<button class="admin-btn admin-btn_danger" id="confirmDeleteVacancyButton" type="button">
+					<button
+						class="admin-btn admin-btn_danger"
+						id="confirmDeleteVacancyButton"
+						type="button"
+					>
 						Удалить
 					</button>
-					<button class="admin-btn" id="cancelDeleteVacancyButton" type="button">
+					<button
+						class="admin-btn"
+						id="cancelDeleteVacancyButton"
+						type="button"
+					>
 						Отмена
 					</button>
 				</div>
@@ -336,13 +438,19 @@
 			>
 				<div class="admin-section__header">
 					<div>
-						<h2 class="admin-modal__title" id="trashModalTitle">Корзина вакансий</h2>
+						<h2 class="admin-modal__title" id="trashModalTitle">
+							Корзина вакансий
+						</h2>
 						<p class="admin-modal__text">
 							Удалённые вакансии можно восстановить или удалить навсегда.
 						</p>
 					</div>
 					<div class="admin-section__actions">
-						<button class="admin-btn admin-btn_danger" id="emptyTrashButton" type="button">
+						<button
+							class="admin-btn admin-btn_danger"
+							id="emptyTrashButton"
+							type="button"
+						>
 							Очистить корзину
 						</button>
 						<button class="admin-btn" id="closeTrashButton" type="button">
@@ -359,7 +467,12 @@
 			</div>
 		</div>
 
-		<div class="admin-toast-stack" id="toastStack" aria-live="polite" aria-atomic="true"></div>
+		<div
+			class="admin-toast-stack"
+			id="toastStack"
+			aria-live="polite"
+			aria-atomic="true"
+		></div>
 
 		<div class="admin-info-dock">
 			<button
@@ -379,27 +492,40 @@
 				<div class="admin-info-panel__meta">
 					<div class="admin-info-panel__row">
 						<span class="admin-info-panel__label">Версия сервера</span>
-						<span class="admin-info-panel__value" id="serverVersionValue">Загрузка...</span>
+						<span class="admin-info-panel__value" id="serverVersionValue"
+							>Загрузка...</span
+						>
 					</div>
 					<div class="admin-info-panel__row">
 						<span class="admin-info-panel__label">Go runtime</span>
-						<span class="admin-info-panel__value admin-info-panel__value_code" id="serverGoVersionValue">
+						<span
+							class="admin-info-panel__value admin-info-panel__value_code"
+							id="serverGoVersionValue"
+						>
 							Загрузка...
 						</span>
 					</div>
 					<div class="admin-info-panel__row">
 						<span class="admin-info-panel__label">Платформа</span>
-						<span class="admin-info-panel__value admin-info-panel__value_code" id="serverPlatformValue">
+						<span
+							class="admin-info-panel__value admin-info-panel__value_code"
+							id="serverPlatformValue"
+						>
 							Загрузка...
 						</span>
 					</div>
 					<div class="admin-info-panel__row">
 						<span class="admin-info-panel__label">Система</span>
-						<span class="admin-info-panel__value" id="serverOsValue">Загрузка...</span>
+						<span class="admin-info-panel__value" id="serverOsValue"
+							>Загрузка...</span
+						>
 					</div>
 					<div class="admin-info-panel__row">
 						<span class="admin-info-panel__label">Хост</span>
-						<span class="admin-info-panel__value admin-info-panel__value_code" id="serverHostValue">
+						<span
+							class="admin-info-panel__value admin-info-panel__value_code"
+							id="serverHostValue"
+						>
 							Загрузка...
 						</span>
 					</div>
@@ -407,14 +533,26 @@
 				<div class="admin-info-panel__group">
 					<div class="admin-info-panel__label">Тема</div>
 					<div class="admin-theme-switcher" id="themeSwitcher">
-						<button class="admin-theme-switcher__button" data-theme-mode="light" type="button">
+						<button
+							class="admin-theme-switcher__button"
+							data-theme-mode="light"
+							type="button"
+						>
 							Светлая
 						</button>
-						<button class="admin-theme-switcher__button" data-theme-mode="dark" type="button">
+						<button
+							class="admin-theme-switcher__button"
+							data-theme-mode="dark"
+							type="button"
+						>
 							Тёмная
 						</button>
 					</div>
-					<button class="admin-theme-system-button" id="themeSystemButton" type="button">
+					<button
+						class="admin-theme-system-button"
+						id="themeSystemButton"
+						type="button"
+					>
 						Системная тема
 					</button>
 				</div>
