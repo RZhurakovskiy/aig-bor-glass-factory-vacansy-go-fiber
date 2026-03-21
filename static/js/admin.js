@@ -16,6 +16,7 @@ const elements = {
 	themeSystemButton: document.getElementById('themeSystemButton'),
 	adminMapPreview: document.getElementById('adminMapPreview'),
 	toastStack: document.getElementById('toastStack'),
+	loaderStack: document.getElementById('loaderStack'),
 	vacanciesList: document.getElementById('vacanciesList'),
 	vacanciesEmpty: document.getElementById('vacanciesEmpty'),
 	openTrashButton: document.getElementById('openTrashButton'),
@@ -59,6 +60,7 @@ const state = {
 	selectedVacancyId: null,
 	pendingDeleteVacancyId: null,
 	pendingDeleteMode: null,
+	loaders: new Map(),
 }
 
 const themeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
@@ -76,15 +78,23 @@ async function bootstrap() {
 	bindEvents()
 	const tasks = []
 
-	tasks.push(refreshAdminMeta().catch(handleAdminMetaError))
+	tasks.push(
+		runStartupTask('system-meta', 'Системная информация', () =>
+			refreshAdminMeta().catch(handleAdminMetaError)
+		)
+	)
 
 	if (isContactsPage() && elements.contactsForm) {
-		tasks.push(refreshContacts())
+		tasks.push(runStartupTask('contacts', 'Контакты и карта', () => refreshContacts()))
 	}
 
 	if (isVacanciesPage() && hasVacancyUI()) {
-		tasks.push(refreshVacancies())
-		tasks.push(refreshTrashVacancies())
+		tasks.push(runStartupTask('vacancies', 'Список вакансий', () => refreshVacancies()))
+		tasks.push(
+			runStartupTask('vacancies-trash', 'Корзина вакансий', () =>
+				refreshTrashVacancies()
+			)
+		)
 	}
 
 	await Promise.all(tasks)
@@ -1038,6 +1048,162 @@ async function api(url, options = {}, expectJson = true) {
 
 	if (!expectJson || response.status === 204) return null
 	return response.json()
+}
+
+function runStartupTask(id, label, task) {
+	startLoader(id, label)
+
+	return Promise.resolve()
+		.then(() => task())
+		.then(result => {
+			completeLoader(id, 'Готово')
+			return result
+		})
+		.catch(error => {
+			failLoader(id, getErrorMessage(error, 'Ошибка загрузки'))
+			throw error
+		})
+}
+
+function startLoader(id, label) {
+	if (!elements.loaderStack) return
+
+	const existing = state.loaders.get(id)
+	if (existing) {
+		window.clearInterval(existing.timerId)
+		existing.node.remove()
+		state.loaders.delete(id)
+	}
+
+	const node = document.createElement('article')
+	node.className = 'admin-loader-card'
+	node.dataset.loaderId = id
+	node.innerHTML = `
+		<div class="admin-loader-card__header">
+			<span class="admin-loader-card__status">Загрузка...</span>
+		</div>
+		<h3 class="admin-loader-card__title">${escapeHtml(label)}</h3>
+		<div
+			class="admin-loader-card__progress"
+			role="progressbar"
+			aria-valuemin="0"
+			aria-valuemax="100"
+			aria-valuenow="6"
+		>
+			<div class="admin-loader-card__bar"></div>
+		</div>
+		<div class="admin-loader-card__meta">
+			<span class="admin-loader-card__phase">Подключение</span>
+			<span class="admin-loader-card__percent">6%</span>
+		</div>
+	`
+
+	elements.loaderStack.prepend(node)
+
+	const loader = {
+		id,
+		node,
+		label,
+		progress: 6,
+		timerId: 0,
+	}
+
+	state.loaders.set(id, loader)
+	updateLoader(id)
+
+	loader.timerId = window.setInterval(() => advanceLoader(id), 120)
+}
+
+function advanceLoader(id) {
+	const loader = state.loaders.get(id)
+	if (!loader) return
+
+	const next = Math.min(
+		86,
+		loader.progress + (loader.progress < 24 ? 7 : loader.progress < 56 ? 4 : 2)
+	)
+	if (next === loader.progress) return
+
+	loader.progress = next
+	updateLoader(id)
+}
+
+function completeLoader(id, phase = 'Готово') {
+	const loader = state.loaders.get(id)
+	if (!loader) return
+
+	window.clearInterval(loader.timerId)
+	loader.progress = 100
+	loader.node.classList.add('is-complete')
+	updateLoader(id, phase)
+
+	window.setTimeout(() => {
+		loader.node.classList.add('is-leaving')
+		window.setTimeout(() => {
+			loader.node.remove()
+			state.loaders.delete(id)
+		}, 220)
+	}, 450)
+}
+
+function failLoader(id, message) {
+	const loader = state.loaders.get(id)
+	if (!loader) return
+
+	window.clearInterval(loader.timerId)
+	loader.progress = Math.max(loader.progress, 100)
+	loader.node.classList.add('is-error')
+	updateLoader(id, message)
+
+	window.setTimeout(() => {
+		loader.node.classList.add('is-leaving')
+		window.setTimeout(() => {
+			loader.node.remove()
+			state.loaders.delete(id)
+		}, 2600)
+	}, 1600)
+}
+
+function updateLoader(id, phaseOverride) {
+	const loader = state.loaders.get(id)
+	if (!loader) return
+
+	const progressbar = loader.node.querySelector('.admin-loader-card__progress')
+	const bar = loader.node.querySelector('.admin-loader-card__bar')
+	const percent = loader.node.querySelector('.admin-loader-card__percent')
+	const phase = loader.node.querySelector('.admin-loader-card__phase')
+	const status = loader.node.querySelector('.admin-loader-card__status')
+
+	if (progressbar) {
+		progressbar.setAttribute('aria-valuenow', String(loader.progress))
+	}
+	if (bar) {
+		bar.style.width = `${loader.progress}%`
+	}
+	if (percent) {
+		percent.textContent = `${loader.progress}%`
+	}
+
+	const phaseText =
+		phaseOverride ||
+		(loader.progress < 20
+			? 'Подключение'
+			: loader.progress < 52
+				? 'Получение данных'
+				: loader.progress < 88
+					? 'Обработка'
+					: 'Завершение')
+
+	if (phase) {
+		phase.textContent = phaseText
+	}
+	if (status) {
+		status.textContent = loader.node.classList.contains('is-error')
+			? 'Ошибка'
+			: loader.node.classList.contains('is-complete')
+				? 'Завершено'
+				: 'Запрос...'
+	}
 }
 
 function readText(value) {

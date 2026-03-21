@@ -830,6 +830,117 @@ body.admin-modal-open {
 	width: min(360px, calc(100vw - 32px));
 }
 
+.admin-loader-stack {
+	position: fixed;
+	right: 20px;
+	bottom: 20px;
+	z-index: 1090;
+	display: grid;
+	gap: 10px;
+	width: min(360px, calc(100vw - 32px));
+	pointer-events: none;
+}
+
+.admin-loader-card {
+	display: grid;
+	gap: 10px;
+	padding: 14px 16px;
+	border: 1px solid var(--admin-border);
+	border-radius: 12px;
+	background:
+		linear-gradient(135deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0) 48%),
+		var(--admin-surface);
+	box-shadow: 0 18px 42px rgba(15, 23, 42, 0.14);
+	backdrop-filter: blur(18px);
+	-webkit-backdrop-filter: blur(18px);
+	animation: admin-loader-in 0.22s ease forwards;
+	transition: opacity 0.22s ease, transform 0.22s ease, border-color 0.22s ease;
+}
+
+.admin-loader-card.is-complete {
+	border-color: rgba(22, 163, 74, 0.28);
+}
+
+.admin-loader-card.is-error {
+	border-color: rgba(217, 45, 32, 0.32);
+}
+
+.admin-loader-card.is-leaving {
+	opacity: 0;
+	transform: translateY(10px);
+}
+
+.admin-loader-card__header,
+.admin-loader-card__meta {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+}
+
+.admin-loader-card__eyebrow {
+	display: inline-flex;
+	align-items: center;
+	min-height: 24px;
+	padding: 0 8px;
+	border: 1px solid var(--admin-border);
+	border-radius: 999px;
+	background: rgba(45, 45, 45, 0.05);
+	font-size: 11px;
+	font-weight: 800;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: var(--admin-muted);
+}
+
+.admin-loader-card__status,
+.admin-loader-card__percent,
+.admin-loader-card__phase {
+	font-size: 12px;
+	font-weight: 700;
+	color: var(--admin-muted);
+}
+
+.admin-loader-card__title {
+	margin: 0;
+	font-size: 16px;
+	line-height: 1.2;
+	color: var(--admin-text);
+}
+
+.admin-loader-card__progress {
+	height: 8px;
+	overflow: hidden;
+	border-radius: 999px;
+	background: rgba(45, 45, 45, 0.08);
+}
+
+.admin-loader-card__bar {
+	width: 0;
+	height: 100%;
+	background: linear-gradient(90deg, #2d2d2d 0%, #515151 100%);
+	transition: width 0.18s ease;
+}
+
+.admin-loader-card.is-complete .admin-loader-card__bar {
+	background: linear-gradient(90deg, #15803d 0%, #22c55e 100%);
+}
+
+.admin-loader-card.is-error .admin-loader-card__bar {
+	background: linear-gradient(90deg, #b42318 0%, #ef4444 100%);
+}
+
+@keyframes admin-loader-in {
+	from {
+		opacity: 0;
+		transform: translateY(12px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
 .admin-info-dock {
 	position: fixed;
 	left: 18px;
