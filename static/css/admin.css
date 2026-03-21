@@ -134,9 +134,16 @@ body.admin-modal-open {
 	gap: 8px;
 }
 
-.admin-topbar__actions {
+.admin-topbar__meta {
 	display: flex;
 	align-items: center;
+	gap: 10px;
+	flex-wrap: wrap;
+}
+
+.admin-topbar__actions {
+	display: flex;
+	align-items: flex-start;
 	gap: 12px;
 	flex-wrap: wrap;
 	justify-content: flex-end;
@@ -657,6 +664,20 @@ body.admin-modal-open {
 		color 0.18s ease;
 }
 
+.admin-btn__icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 16px;
+	height: 16px;
+}
+
+.admin-btn__icon svg {
+	width: 16px;
+	height: 16px;
+	display: block;
+}
+
 .admin-btn__count {
 	display: inline-flex;
 	align-items: center;
@@ -701,6 +722,26 @@ body.admin-modal-open {
 	border-color: #1f1f1f;
 	background: #1f1f1f;
 	color: #fff;
+}
+
+.admin-btn_ghost {
+	border-color: rgba(255, 255, 255, 0.16);
+	background: rgba(255, 255, 255, 0.06);
+	color: #ffffff;
+	backdrop-filter: blur(12px);
+	-webkit-backdrop-filter: blur(12px);
+}
+
+.admin-btn_ghost:hover {
+	border-color: rgba(255, 255, 255, 0.28);
+	background: rgba(255, 255, 255, 0.1);
+	color: #ffffff;
+}
+
+:root[data-theme="dark"] .admin-btn_ghost {
+	border-color: rgba(255, 255, 255, 0.16);
+	background: rgba(255, 255, 255, 0.05);
+	color: #ffffff;
 }
 
 :root[data-theme="dark"] .admin-btn_primary:hover {
