@@ -1,5 +1,7 @@
 const elements = {
 	contactsForm: document.getElementById('contactsForm'),
+	pageSections: Array.from(document.querySelectorAll('[data-admin-page]')),
+	pageLinks: Array.from(document.querySelectorAll('[data-admin-page-link]')),
 	logoutButton: document.getElementById('logoutButton'),
 	saveButton: document.getElementById('saveButton'),
 	statusMessage: document.getElementById('statusMessage'),
@@ -50,6 +52,7 @@ const state = {
 	adminPlacemark: null,
 	adminMapCoordinates: null,
 	adminMapAddress: '',
+	currentPage: getCurrentAdminPage(),
 	infoPanelOpen: false,
 	ymapsReady: null,
 	themeMode: document.documentElement.dataset.themeMode || 'system',
@@ -69,15 +72,17 @@ bootstrap().catch(error => {
 
 async function bootstrap() {
 	initTheme()
+	initAdminPage()
 	bindEvents()
 	const tasks = []
 
-	if (elements.contactsForm) {
+	tasks.push(refreshAdminMeta().catch(handleAdminMetaError))
+
+	if (isContactsPage() && elements.contactsForm) {
 		tasks.push(refreshContacts())
-		tasks.push(refreshAdminMeta().catch(handleAdminMetaError))
 	}
 
-	if (hasVacancyUI()) {
+	if (isVacanciesPage() && hasVacancyUI()) {
 		tasks.push(refreshVacancies())
 		tasks.push(refreshTrashVacancies())
 	}
@@ -86,10 +91,10 @@ async function bootstrap() {
 }
 
 function bindEvents() {
-	if (elements.contactsForm) {
+	if (isContactsPage() && elements.contactsForm) {
 		elements.contactsForm.addEventListener('submit', handleContactsSubmit)
 	}
-	if (elements.saveButton) {
+	if (isContactsPage() && elements.saveButton) {
 		elements.saveButton.addEventListener('click', handleContactsSubmit)
 	}
 
@@ -126,7 +131,7 @@ function bindEvents() {
 		elements.closeTrashButton.addEventListener('click', closeTrashModal)
 	}
 
-	if (hasVacancyUI()) {
+	if (isVacanciesPage() && hasVacancyUI()) {
 		elements.vacancyForm.addEventListener('submit', handleVacancySubmit)
 		elements.saveVacancyButton.addEventListener('click', handleVacancySubmit)
 		elements.resetVacancyButton.addEventListener('click', resetVacancyForm)
@@ -139,6 +144,34 @@ function bindEvents() {
 
 	document.addEventListener('click', handleDocumentClick)
 	document.addEventListener('keydown', handleDocumentKeydown)
+}
+
+function initAdminPage() {
+	elements.pageSections.forEach(section => {
+		section.hidden = section.dataset.adminPage !== state.currentPage
+	})
+
+	elements.pageLinks.forEach(link => {
+		link.classList.toggle('is-active', link.dataset.adminPageLink === state.currentPage)
+		link.setAttribute(
+			'aria-current',
+			link.dataset.adminPageLink === state.currentPage ? 'page' : 'false'
+		)
+	})
+}
+
+function getCurrentAdminPage() {
+	const path = window.location.pathname.replace(/\/+$/, '')
+	if (path.endsWith('/contacts')) return 'contacts'
+	return 'vacancies'
+}
+
+function isVacanciesPage() {
+	return state.currentPage === 'vacancies'
+}
+
+function isContactsPage() {
+	return state.currentPage === 'contacts'
 }
 
 async function refreshContacts() {

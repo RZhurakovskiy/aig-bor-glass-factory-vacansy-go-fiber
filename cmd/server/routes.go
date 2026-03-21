@@ -23,6 +23,12 @@ func registerRoutes(app *fiber.App, db *gorm.DB, staticHTTPFS http.FileSystem, s
 	app.Get("/admin", h.RequireAdmin, serveStaticPage(staticFS, "admin.html"))
 	app.Get("/admin/", h.RequireAdmin, serveStaticPage(staticFS, "admin.html"))
 	app.Get("/admin.html", h.RequireAdmin, serveStaticPage(staticFS, "admin.html"))
+	app.Get("/admin/vacancies", h.RequireAdmin, serveStaticPage(staticFS, "admin.html"))
+	app.Get("/admin/vacancies/", h.RequireAdmin, serveStaticPage(staticFS, "admin.html"))
+	app.Get("/admin/contacts", h.RequireAdmin, serveStaticPage(staticFS, "admin.html"))
+	app.Get("/admin/contacts/", h.RequireAdmin, serveStaticPage(staticFS, "admin.html"))
+	app.Get("/admin/:section", h.RequireAdmin, serveAdminSection(staticFS))
+	app.Get("/admin/:section/", h.RequireAdmin, serveAdminSection(staticFS))
 
 	adminAPI := app.Group("/api/admin", h.RequireAdmin)
 	adminAPI.Get("/vacancies", h.GetAdminVacancies)
@@ -54,6 +60,17 @@ func serveStaticPage(staticFS fs.FS, name string) fiber.Handler {
 
 		c.Type(path.Ext(name)[1:])
 		return c.Send(body)
+	}
+}
+
+func serveAdminSection(staticFS fs.FS) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		switch c.Params("section") {
+		case "vacancies", "contacts":
+			return serveStaticPage(staticFS, "admin.html")(c)
+		default:
+			return fiber.ErrNotFound
+		}
 	}
 }
 

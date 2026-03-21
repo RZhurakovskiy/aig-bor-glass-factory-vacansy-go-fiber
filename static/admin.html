@@ -16,7 +16,7 @@
 				root.style.colorScheme = resolved
 			})()
 		</script>
-		<link rel="stylesheet" href="./css/admin.css" />
+		<link rel="stylesheet" href="/css/admin.css" />
 	</head>
 	<body class="admin-body">
 		<main class="admin-main">
@@ -38,8 +38,39 @@
 				</header>
 
 				<section class="admin-panel">
-					<div class="admin-layout">
-						<section class="admin-section">
+					<div class="admin-workspace">
+						<aside class="admin-sidebar" aria-label="Разделы CRM">
+							<div class="admin-sidebar__label">Разделы CRM</div>
+							<nav class="admin-sidebar__nav">
+								<a
+									class="admin-sidebar__link"
+									data-admin-page-link="vacancies"
+									href="/admin/vacancies"
+								>
+									<span class="admin-sidebar__link-marker" aria-hidden="true"></span>
+									<span class="admin-sidebar__link-body">
+										<span class="admin-sidebar__link-title">Вакансии</span>
+										<span class="admin-sidebar__link-note">Управление списком</span>
+									</span>
+								</a>
+								<a
+									class="admin-sidebar__link"
+									data-admin-page-link="contacts"
+									href="/admin/contacts"
+								>
+									<span class="admin-sidebar__link-marker" aria-hidden="true"></span>
+									<span class="admin-sidebar__link-body">
+										<span class="admin-sidebar__link-title">Контакты</span>
+										<span class="admin-sidebar__link-note">Телефоны, соцсети и карта</span>
+									</span>
+								</a>
+							</nav>
+						</aside>
+
+						<div class="admin-content">
+							<section class="admin-page" data-admin-page="vacancies">
+								<div class="admin-layout">
+									<section class="admin-section">
 							<div class="admin-section__header">
 								<div>
 									<h2 class="admin-section__title">Вакансии</h2>
@@ -181,9 +212,12 @@
 									></div>
 								</div>
 							</form>
-						</section>
+									</section>
+								</div>
+							</section>
 
-						<section class="admin-section admin-section_full">
+							<section class="admin-page" data-admin-page="contacts" hidden>
+								<section class="admin-section admin-section_full">
 							<div class="admin-section__header">
 								<div>
 									<h2 class="admin-section__title">Контакты сайта</h2>
@@ -263,7 +297,9 @@
 									<div class="admin-status-note" id="statusMessage" aria-live="polite"></div>
 								</div>
 							</form>
-						</section>
+								</section>
+							</section>
+						</div>
 					</div>
 				</section>
 			</div>
@@ -389,6 +425,6 @@
 			src="https://api-maps.yandex.ru/2.1/?lang=ru_RU"
 			type="text/javascript"
 		></script>
-		<script src="./js/admin.js"></script>
+		<script src="/js/admin.js"></script>
 	</body>
 </html>
