@@ -1648,11 +1648,35 @@ function fillUserForm(user) {
 	state.selectedUserId = user.id
 	elements.userForm.elements.namedItem('id').value = user.id
 	elements.userForm.elements.namedItem('login').value = user.login || ''
-	elements.userForm.elements.namedItem('password').value = ''
-	elements.userForm.elements.namedItem('role').value = user.role || 'admin'
+	const passwordField = elements.userForm.elements.namedItem('password')
+	const roleField = elements.userForm.elements.namedItem('role')
+	restoreRoleFieldOptions(roleField)
+	passwordField.value = ''
+	roleField.value = user.role || 'admin'
 	const activeField = elements.userForm.elements.namedItem('active')
 	activeField.checked = Boolean(user.active)
 	activeField.disabled = user.login === 'hrautomotive_admin'
+	activeField.title =
+		user.login === 'hrautomotive_admin'
+			? 'Недоступно для главного пользователя.'
+			: ''
+	passwordField.disabled = user.login === 'hrautomotive_admin'
+	roleField.disabled = user.login === 'hrautomotive_admin'
+	passwordField.placeholder =
+		user.login === 'hrautomotive_admin'
+			? 'Смена пароля недоступна для главного пользователя'
+			: 'Введите новый пароль'
+	passwordField.title =
+		user.login === 'hrautomotive_admin'
+			? 'Смена пароля недоступна для главного пользователя.'
+			: ''
+	roleField.title =
+		user.login === 'hrautomotive_admin'
+			? 'Смена роли недоступна для главного пользователя.'
+			: ''
+	if (user.login === 'hrautomotive_admin') {
+		replaceRoleFieldWithLockedMessage(roleField)
+	}
 	elements.userFormTitle.textContent = `Редактирование: ${user.login}`
 	renderUsers()
 }
@@ -1663,13 +1687,40 @@ function resetUserForm() {
 	state.selectedUserId = null
 	elements.userForm.reset()
 	elements.userForm.elements.namedItem('id').value = ''
-	elements.userForm.elements.namedItem('role').value = 'admin'
+	const passwordField = elements.userForm.elements.namedItem('password')
+	const roleField = elements.userForm.elements.namedItem('role')
+	restoreRoleFieldOptions(roleField)
+	roleField.value = 'admin'
+	roleField.disabled = false
+	roleField.title = ''
+	passwordField.disabled = false
+	passwordField.placeholder = 'Введите новый пароль'
+	passwordField.title = ''
 	const activeField = elements.userForm.elements.namedItem('active')
 	activeField.checked = true
 	activeField.disabled = false
+	activeField.title = ''
 	elements.userFormTitle.textContent = 'Создание новой учетной записи'
 	setUserStatus('')
 	renderUsers()
+}
+
+function replaceRoleFieldWithLockedMessage(roleField) {
+	if (!(roleField instanceof HTMLSelectElement)) return
+	if (!roleField.dataset.originalOptions) {
+		roleField.dataset.originalOptions = roleField.innerHTML
+	}
+
+	roleField.innerHTML =
+		'<option value="admin">Смена роли недоступна для главного пользователя</option>'
+	roleField.value = 'admin'
+}
+
+function restoreRoleFieldOptions(roleField) {
+	if (!(roleField instanceof HTMLSelectElement)) return
+	if (!roleField.dataset.originalOptions) return
+
+	roleField.innerHTML = roleField.dataset.originalOptions
 }
 
 function findUser(id) {

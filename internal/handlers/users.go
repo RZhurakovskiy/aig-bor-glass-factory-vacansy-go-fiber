@@ -123,7 +123,7 @@ func (h *Handler) UpdateAdminUser(c *fiber.Ctx) error {
 		user.Active = true
 	}
 
-	if strings.TrimSpace(payload.Password) != "" {
+	if user.Login != models.BootstrapAdminLogin && strings.TrimSpace(payload.Password) != "" {
 		hash, err := bcrypt.GenerateFromPassword([]byte(strings.TrimSpace(payload.Password)), bcrypt.DefaultCost)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "не удалось обновить пароль пользователя"})
