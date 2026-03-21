@@ -11,11 +11,22 @@ const elements = {
 	saveVacancyButton: document.getElementById('saveVacancyButton'),
 	resetVacancyButton: document.getElementById('resetVacancyButton'),
 	createVacancyButton: document.getElementById('createVacancyButton'),
+	deleteVacancyModal: document.getElementById('deleteVacancyModal'),
+	deleteVacancyText: document.getElementById('deleteVacancyText'),
+	confirmDeleteVacancyButton: document.getElementById('confirmDeleteVacancyButton'),
+	cancelDeleteVacancyButton: document.getElementById('cancelDeleteVacancyButton'),
+	listEditors: {
+		schedule: document.querySelector('[data-list-editor="schedule"]'),
+		duties: document.querySelector('[data-list-editor="duties"]'),
+		requirements: document.querySelector('[data-list-editor="requirements"]'),
+		conditions: document.querySelector('[data-list-editor="conditions"]'),
+	},
 }
 
 const state = {
 	vacancies: [],
 	selectedVacancyId: null,
+	pendingDeleteVacancyId: null,
 }
 
 bootstrap().catch(error => {
@@ -51,13 +62,25 @@ function bindEvents() {
 		elements.logoutButton.addEventListener('click', handleLogout)
 	}
 
+	if (elements.confirmDeleteVacancyButton) {
+		elements.confirmDeleteVacancyButton.addEventListener('click', confirmVacancyDelete)
+	}
+
+	if (elements.cancelDeleteVacancyButton) {
+		elements.cancelDeleteVacancyButton.addEventListener('click', closeDeleteVacancyModal)
+	}
+
 	if (hasVacancyUI()) {
 		elements.vacancyForm.addEventListener('submit', handleVacancySubmit)
 		elements.saveVacancyButton.addEventListener('click', handleVacancySubmit)
 		elements.resetVacancyButton.addEventListener('click', resetVacancyForm)
 		elements.createVacancyButton.addEventListener('click', resetVacancyForm)
+		elements.vacancyForm.addEventListener('click', handleVacancyFormClick)
 		elements.vacanciesList.addEventListener('click', handleVacancyListClick)
 	}
+
+	document.addEventListener('click', handleDocumentClick)
+	document.addEventListener('keydown', handleDocumentKeydown)
 }
 
 async function refreshContacts() {
@@ -196,11 +219,11 @@ async function handleVacancySubmit(event) {
 	const payload = {
 		title: readText(formData.get('title')),
 		salary: readText(formData.get('salary')),
-		summary: readText(formData.get('summary')),
-		schedule: readText(formData.get('schedule')),
-		duties: readText(formData.get('duties')),
-		requirements: readText(formData.get('requirements')),
-		conditions: readText(formData.get('conditions')),
+		summary: '',
+		schedule: joinListEditorItems('schedule'),
+		duties: joinListEditorItems('duties'),
+		requirements: joinListEditorItems('requirements'),
+		conditions: joinListEditorItems('conditions'),
 		active: elements.vacancyForm.elements.namedItem('active').checked,
 	}
 
@@ -231,9 +254,14 @@ async function handleVacancyDelete(id) {
 	const vacancy = findVacancy(id)
 	if (!vacancy) return
 
-	const confirmed = window.confirm(`Удалить вакансию «${vacancy.title}»?`)
-	if (!confirmed) return
+	openDeleteVacancyModal(vacancy)
+}
 
+async function confirmVacancyDelete() {
+	const id = state.pendingDeleteVacancyId
+	if (!id) return
+
+	closeDeleteVacancyModal()
 	setVacancyStatus('Удаляю вакансию...')
 
 	try {
@@ -248,6 +276,35 @@ async function handleVacancyDelete(id) {
 	} catch (error) {
 		console.error(error)
 		setVacancyStatus(getErrorMessage(error, 'Не удалось удалить вакансию.'), true)
+	}
+}
+
+function openDeleteVacancyModal(vacancy) {
+	if (!elements.deleteVacancyModal || !elements.deleteVacancyText) return
+
+	state.pendingDeleteVacancyId = vacancy.id
+	elements.deleteVacancyText.textContent = `Вы действительно хотите удалить вакансию «${vacancy.title}»? Это действие нельзя отменить.`
+	elements.deleteVacancyModal.hidden = false
+	document.body.classList.add('admin-modal-open')
+}
+
+function closeDeleteVacancyModal() {
+	if (!elements.deleteVacancyModal) return
+
+	state.pendingDeleteVacancyId = null
+	elements.deleteVacancyModal.hidden = true
+	document.body.classList.remove('admin-modal-open')
+}
+
+function handleDocumentClick(event) {
+	if (event.target.closest('[data-close-delete-modal]')) {
+		closeDeleteVacancyModal()
+	}
+}
+
+function handleDocumentKeydown(event) {
+	if (event.key === 'Escape' && !elements.deleteVacancyModal?.hidden) {
+		closeDeleteVacancyModal()
 	}
 }
 
@@ -297,13 +354,16 @@ function fillVacancyForm(vacancy) {
 	elements.vacancyForm.elements.namedItem('id').value = String(vacancy.id)
 	elements.vacancyForm.elements.namedItem('title').value = vacancy.title || ''
 	elements.vacancyForm.elements.namedItem('salary').value = vacancy.salary || ''
-	elements.vacancyForm.elements.namedItem('summary').value = vacancy.summary || ''
-	elements.vacancyForm.elements.namedItem('schedule').value = vacancy.schedule || ''
-	elements.vacancyForm.elements.namedItem('duties').value = vacancy.duties || ''
-	elements.vacancyForm.elements.namedItem('requirements').value =
-		vacancy.requirements || ''
-	elements.vacancyForm.elements.namedItem('conditions').value =
-		vacancy.conditions || ''
+	setListEditorItems('schedule', vacancy.scheduleLines || splitLines(vacancy.schedule))
+	setListEditorItems('duties', vacancy.dutiesList || splitLines(vacancy.duties))
+	setListEditorItems(
+		'requirements',
+		vacancy.requirementsList || splitLines(vacancy.requirements)
+	)
+	setListEditorItems(
+		'conditions',
+		vacancy.conditionsList || splitLines(vacancy.conditions)
+	)
 	elements.vacancyForm.elements.namedItem('active').checked = Boolean(vacancy.active)
 	elements.vacancyFormTitle.textContent = `Редактирование: ${vacancy.title}`
 
@@ -317,9 +377,23 @@ function resetVacancyForm() {
 	elements.vacancyForm.reset()
 	elements.vacancyForm.elements.namedItem('id').value = ''
 	elements.vacancyForm.elements.namedItem('active').checked = true
+	resetListEditors()
 	elements.vacancyFormTitle.textContent = 'Создание новой вакансии'
 	setVacancyStatus('')
 	renderVacancies()
+}
+
+function handleVacancyFormClick(event) {
+	const addButton = event.target.closest('[data-add-list-item]')
+	if (addButton) {
+		addListEditorItem(addButton.dataset.addListItem)
+		return
+	}
+
+	const removeButton = event.target.closest('[data-remove-list-item]')
+	if (removeButton) {
+		removeListEditorItem(removeButton.dataset.removeListItem, removeButton)
+	}
 }
 
 function findVacancy(id) {
@@ -421,8 +495,95 @@ function hasVacancyUI() {
 			elements.vacancyStatusMessage &&
 			elements.saveVacancyButton &&
 			elements.resetVacancyButton &&
-			elements.createVacancyButton
+			elements.createVacancyButton &&
+			elements.listEditors.schedule &&
+			elements.listEditors.duties &&
+			elements.listEditors.requirements &&
+			elements.listEditors.conditions
 	)
+}
+
+function setListEditorItems(name, items) {
+	const editor = elements.listEditors[name]
+	if (!editor) return
+
+	editor.innerHTML = ''
+	const normalized = items.filter(item => readText(item) !== '')
+	if (!normalized.length) {
+		editor.appendChild(createListEditorRow(name, ''))
+		return
+	}
+
+	normalized.forEach(item => {
+		editor.appendChild(createListEditorRow(name, item))
+	})
+}
+
+function addListEditorItem(name, value = '') {
+	const editor = elements.listEditors[name]
+	if (!editor) return
+
+	editor.appendChild(createListEditorRow(name, value))
+	const input = editor.lastElementChild?.querySelector('input')
+	if (input) input.focus()
+}
+
+function removeListEditorItem(name, button) {
+	const editor = elements.listEditors[name]
+	const row = button.closest('.admin-list-editor__row')
+	if (!editor || !row) return
+
+	if (editor.children.length === 1) {
+		const input = row.querySelector('input')
+		if (input) input.value = ''
+		return
+	}
+
+	row.remove()
+}
+
+function joinListEditorItems(name) {
+	const editor = elements.listEditors[name]
+	if (!editor) return ''
+
+	return Array.from(editor.querySelectorAll('input'))
+		.map(input => readText(input.value))
+		.filter(Boolean)
+		.join('\n')
+}
+
+function resetListEditors() {
+	Object.keys(elements.listEditors).forEach(name => {
+		setListEditorItems(name, [])
+	})
+}
+
+function createListEditorRow(name, value) {
+	const row = document.createElement('div')
+	row.className = 'admin-list-editor__row'
+	row.innerHTML = `
+		<input
+			class="admin-input"
+			type="text"
+			value="${escapeAttribute(value)}"
+			placeholder="Введите пункт"
+		/>
+		<button
+			class="admin-btn admin-btn_compact admin-btn_danger"
+			data-remove-list-item="${name}"
+			type="button"
+		>
+			Удалить
+		</button>
+	`
+	return row
+}
+
+function splitLines(value) {
+	return String(value || '')
+		.split('\n')
+		.map(line => readText(line))
+		.filter(Boolean)
 }
 
 function getErrorMessage(error, fallback) {
@@ -439,4 +600,8 @@ function escapeHtml(value) {
 		.replaceAll('>', '&gt;')
 		.replaceAll('"', '&quot;')
 		.replaceAll("'", '&#39;')
+}
+
+function escapeAttribute(value) {
+	return escapeHtml(value)
 }

@@ -89,6 +89,11 @@ async function renderVacancies(onLoaded) {
 									</div>
 									<div class="vacancy-card__title">
 										<h4>${escapeHtml(vacancy.title)}</h4>
+										${
+											vacancy.salary
+												? `<div class="vacancy-card__salary">${escapeHtml(vacancy.salary)}</div>`
+												: ''
+										}
 										${vacancy.scheduleLines
 											.map(line => `<p>${escapeHtml(line)}</p>`)
 											.join('')}

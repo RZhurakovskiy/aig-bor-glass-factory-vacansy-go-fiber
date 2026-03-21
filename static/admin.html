@@ -57,65 +57,94 @@
 							<form class="admin-form" id="vacancyForm" action="javascript:void(0)">
 								<input name="id" type="hidden" />
 
-								<label class="admin-field">
-									<span class="admin-field__label">Название</span>
-									<input class="admin-input" name="title" type="text" required />
-								</label>
+								<div class="admin-form-section">
+									<div class="admin-form-section__head">
+										<h3 class="admin-form-section__title">Основное</h3>
+									</div>
 
-								<div class="admin-form__grid">
+									<label class="admin-field">
+										<span class="admin-field__label">Название</span>
+										<input class="admin-input" name="title" type="text" required />
+									</label>
+
 									<label class="admin-field">
 										<span class="admin-field__label">Зарплата</span>
 										<input class="admin-input" name="salary" type="text" />
 									</label>
+
 									<label class="admin-field admin-field_checkbox">
 										<input class="admin-checkbox" name="active" type="checkbox" />
-										<span class="admin-field__label">Показывать на сайте</span>
+										<span class="admin-field__label">Показывать вакансию на сайте</span>
 									</label>
 								</div>
 
-								<label class="admin-field">
-									<span class="admin-field__label">График / короткие условия</span>
-									<textarea
-										class="admin-input admin-textarea admin-textarea_compact"
-										name="schedule"
-										placeholder="Одна строка = один пункт"
-									></textarea>
-								</label>
+								<div class="admin-form-section">
+									<div class="admin-form-section__head">
+										<h3 class="admin-form-section__title">Описание</h3>
+									</div>
 
-								<label class="admin-field">
-									<span class="admin-field__label">Краткое описание</span>
-									<textarea
-										class="admin-input admin-textarea admin-textarea_compact"
-										name="summary"
-									></textarea>
-								</label>
+									<div class="admin-field">
+										<div class="admin-field__head">
+											<span class="admin-field__label">График / короткие условия</span>
+										</div>
+										<div class="admin-list-editor" data-list-editor="schedule"></div>
+										<button
+											class="admin-btn admin-btn_compact admin-btn_add"
+											data-add-list-item="schedule"
+											type="button"
+										>
+											Добавить пункт
+										</button>
+									</div>
+								</div>
 
-								<label class="admin-field">
-									<span class="admin-field__label">Обязанности</span>
-									<textarea
-										class="admin-input admin-textarea"
-										name="duties"
-										placeholder="Одна строка = один пункт"
-									></textarea>
-								</label>
+								<div class="admin-form-section">
+									<div class="admin-form-section__head">
+										<h3 class="admin-form-section__title">Подробности</h3>
+									</div>
 
-								<label class="admin-field">
-									<span class="admin-field__label">Требования</span>
-									<textarea
-										class="admin-input admin-textarea"
-										name="requirements"
-										placeholder="Одна строка = один пункт"
-									></textarea>
-								</label>
+									<div class="admin-field">
+										<div class="admin-field__head">
+											<span class="admin-field__label">Обязанности</span>
+										</div>
+										<div class="admin-list-editor" data-list-editor="duties"></div>
+										<button
+											class="admin-btn admin-btn_compact admin-btn_add"
+											data-add-list-item="duties"
+											type="button"
+										>
+											Добавить пункт
+										</button>
+									</div>
 
-								<label class="admin-field">
-									<span class="admin-field__label">Условия</span>
-									<textarea
-										class="admin-input admin-textarea"
-										name="conditions"
-										placeholder="Одна строка = один пункт"
-									></textarea>
-								</label>
+									<div class="admin-field">
+										<div class="admin-field__head">
+											<span class="admin-field__label">Требования</span>
+										</div>
+										<div class="admin-list-editor" data-list-editor="requirements"></div>
+										<button
+											class="admin-btn admin-btn_compact admin-btn_add"
+											data-add-list-item="requirements"
+											type="button"
+										>
+											Добавить пункт
+										</button>
+									</div>
+
+									<div class="admin-field">
+										<div class="admin-field__head">
+											<span class="admin-field__label">Условия</span>
+										</div>
+										<div class="admin-list-editor" data-list-editor="conditions"></div>
+										<button
+											class="admin-btn admin-btn_compact admin-btn_add"
+											data-add-list-item="conditions"
+											type="button"
+										>
+											Добавить пункт
+										</button>
+									</div>
+								</div>
 
 								<div class="admin-actions">
 									<button
@@ -129,7 +158,7 @@
 										Очистить форму
 									</button>
 									<div
-										class="admin-status-note"
+										class="admin-status-note admin-status-note_full"
 										id="vacancyStatusMessage"
 										aria-live="polite"
 									></div>
@@ -193,6 +222,27 @@
 				</section>
 			</div>
 		</main>
+
+		<div class="admin-modal" id="deleteVacancyModal" hidden>
+			<div class="admin-modal__backdrop" data-close-delete-modal></div>
+			<div
+				class="admin-modal__dialog"
+				role="dialog"
+				aria-modal="true"
+				aria-labelledby="deleteVacancyTitle"
+			>
+				<h2 class="admin-modal__title" id="deleteVacancyTitle">Удалить вакансию?</h2>
+				<p class="admin-modal__text" id="deleteVacancyText"></p>
+				<div class="admin-modal__actions">
+					<button class="admin-btn admin-btn_danger" id="confirmDeleteVacancyButton" type="button">
+						Удалить
+					</button>
+					<button class="admin-btn" id="cancelDeleteVacancyButton" type="button">
+						Отмена
+					</button>
+				</div>
+			</div>
+		</div>
 
 		<script src="./js/admin.js"></script>
 	</body>

@@ -32,6 +32,10 @@ body.admin-body {
 		linear-gradient(180deg, #faf9f6 0%, var(--admin-bg) 100%);
 }
 
+body.admin-modal-open {
+	overflow: hidden;
+}
+
 .admin-main {
 	padding: 40px 20px;
 }
@@ -110,6 +114,7 @@ body.admin-body {
 
 .admin-section {
 	display: grid;
+	align-content: start;
 	gap: 18px;
 	padding: 22px;
 	border: 1px solid var(--admin-border);
@@ -211,7 +216,30 @@ body.admin-body {
 
 .admin-form {
 	display: grid;
+	align-content: start;
 	gap: 16px;
+}
+
+.admin-form-section {
+	display: grid;
+	gap: 16px;
+	padding: 16px;
+	border: 1px solid var(--admin-border);
+	border-radius: 16px;
+	background: var(--admin-surface-muted);
+}
+
+.admin-form-section__head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+}
+
+.admin-form-section__title {
+	margin: 0;
+	font-size: 16px;
+	line-height: 1.2;
 }
 
 .admin-form__grid {
@@ -226,10 +254,24 @@ body.admin-body {
 	min-width: 0;
 }
 
+.admin-field__head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	flex-wrap: wrap;
+}
+
 .admin-field_checkbox {
-	align-self: end;
-	min-height: 48px;
-	padding: 0 4px;
+	display: flex;
+	align-items: center;
+	align-self: stretch;
+	min-height: auto;
+	padding: 12px 14px;
+	border: 1px solid var(--admin-border);
+	border-radius: 12px;
+	background: var(--admin-surface-muted);
+	gap: 12px;
 }
 
 .admin-field__label {
@@ -257,9 +299,15 @@ body.admin-body {
 }
 
 .admin-checkbox {
+	flex: 0 0 auto;
 	width: 18px;
 	height: 18px;
 	accent-color: var(--admin-accent);
+}
+
+.admin-field_checkbox .admin-field__label {
+	margin: 0;
+	line-height: 1.2;
 }
 
 .admin-textarea {
@@ -271,7 +319,20 @@ body.admin-body {
 	min-height: 92px;
 }
 
+.admin-list-editor {
+	display: grid;
+	gap: 10px;
+}
+
+.admin-list-editor__row {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	gap: 10px;
+	align-items: center;
+}
+
 .admin-actions {
+	justify-content: flex-start;
 	align-items: center;
 	flex-wrap: wrap;
 	gap: 12px;
@@ -319,6 +380,10 @@ body.admin-body {
 	font-size: 14px;
 }
 
+.admin-btn_add {
+	justify-self: start;
+}
+
 .admin-btn_danger {
 	color: #9f1717;
 }
@@ -328,8 +393,63 @@ body.admin-body {
 	font-size: 14px;
 }
 
+.admin-status-note_full {
+	flex-basis: 100%;
+}
+
 .admin-status-note.is-error {
 	color: #9f1717;
+}
+
+.admin-modal {
+	position: fixed;
+	inset: 0;
+	z-index: 1000;
+	display: grid;
+	place-items: center;
+	padding: 20px;
+}
+
+.admin-modal[hidden] {
+	display: none;
+}
+
+.admin-modal__backdrop {
+	position: absolute;
+	inset: 0;
+	background: rgba(24, 24, 24, 0.36);
+	backdrop-filter: blur(4px);
+}
+
+.admin-modal__dialog {
+	position: relative;
+	z-index: 1;
+	width: min(100%, 420px);
+	padding: 24px;
+	border: 1px solid var(--admin-border);
+	border-radius: 18px;
+	background: var(--admin-surface);
+	box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
+}
+
+.admin-modal__title {
+	margin: 0 0 10px;
+	font-size: 24px;
+	line-height: 1.1;
+}
+
+.admin-modal__text {
+	margin: 0;
+	color: var(--admin-muted);
+	line-height: 1.5;
+}
+
+.admin-modal__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+	justify-content: flex-start;
+	margin-top: 20px;
 }
 
 @media (max-width: 1080px) {
@@ -345,7 +465,7 @@ body.admin-body {
 
 	.admin-panel,
 	.admin-section {
-		padding: 20px;
+		padding: 18px;
 	}
 
 	.admin-panel__header,
@@ -364,12 +484,43 @@ body.admin-body {
 		font-size: 22px;
 	}
 
+	.admin-panel__subtitle,
+	.admin-section__subtitle {
+		margin-top: 6px;
+		font-size: 14px;
+		line-height: 1.4;
+	}
+
+	.admin-form {
+		gap: 14px;
+	}
+
+	.admin-field__head {
+		align-items: center;
+	}
+
 	.admin-actions,
 	.admin-vacancy-card__actions {
 		align-items: stretch;
 	}
 
-	.admin-btn {
+	.admin-actions .admin-btn {
 		width: 100%;
+	}
+
+	.admin-field__head .admin-btn,
+	.admin-vacancy-card__actions .admin-btn,
+	.admin-list-editor__row .admin-btn {
+		width: auto;
+	}
+
+	.admin-list-editor__row {
+		grid-template-columns: minmax(0, 1fr) auto;
+		align-items: center;
+	}
+
+	.admin-field_checkbox {
+		align-self: stretch;
+		min-height: auto;
 	}
 }
