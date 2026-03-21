@@ -3,6 +3,7 @@ const elements = {
 	logoutButton: document.getElementById('logoutButton'),
 	saveButton: document.getElementById('saveButton'),
 	statusMessage: document.getElementById('statusMessage'),
+	adminMapPreview: document.getElementById('adminMapPreview'),
 	toastStack: document.getElementById('toastStack'),
 	vacanciesList: document.getElementById('vacanciesList'),
 	vacanciesEmpty: document.getElementById('vacanciesEmpty'),
@@ -34,7 +35,11 @@ const elements = {
 const state = {
 	vacancies: [],
 	trashVacancies: [],
-	contactsAddress: '',
+	adminMap: null,
+	adminPlacemark: null,
+	adminMapCoordinates: null,
+	adminMapAddress: '',
+	ymapsReady: null,
 	selectedVacancyId: null,
 	pendingDeleteVacancyId: null,
 	pendingDeleteMode: null,
@@ -101,6 +106,7 @@ function bindEvents() {
 		elements.createVacancyButton.addEventListener('click', resetVacancyForm)
 		elements.vacancyForm.addEventListener('click', handleVacancyFormClick)
 		elements.vacanciesList.addEventListener('click', handleVacancyListClick)
+		elements.vacanciesList.addEventListener('change', handleVacancyListChange)
 		elements.trashVacanciesList.addEventListener('click', handleTrashListClick)
 	}
 
@@ -111,14 +117,132 @@ function bindEvents() {
 async function refreshContacts() {
 	const contacts = await api('/api/admin/contacts')
 
-	state.contactsAddress = contacts.address || ''
 	elements.contactsForm.elements.namedItem('phones').value = contacts.phones || ''
 	elements.contactsForm.elements.namedItem('email').value = contacts.email || ''
+	elements.contactsForm.elements.namedItem('mapUrl').value = contacts.mapUrl || ''
 	elements.contactsForm.elements.namedItem('vk').value = contacts.vk || ''
 	elements.contactsForm.elements.namedItem('telegram').value =
 		contacts.telegram || ''
 	elements.contactsForm.elements.namedItem('whatsapp').value =
 		contacts.whatsapp || ''
+
+	await syncAdminMapFromContacts(contacts)
+}
+
+async function syncAdminMapFromContacts(contacts) {
+	if (!elements.adminMapPreview) return
+
+	const map = await ensureAdminMap()
+	if (!map) return
+
+	const latitude = Number.isFinite(contacts.mapLatitude)
+		? contacts.mapLatitude
+		: 56.334612
+	const longitude = Number.isFinite(contacts.mapLongitude)
+		? contacts.mapLongitude
+		: 44.103409
+
+	state.adminMapCoordinates = [latitude, longitude]
+	state.adminMapAddress = contacts.address || ''
+	updateAdminMapPoint([latitude, longitude], {
+		center: true,
+		address: contacts.address || '',
+	})
+}
+
+async function ensureAdminMap() {
+	if (!elements.adminMapPreview || !window.ymaps) return null
+
+	if (!state.ymapsReady) {
+		state.ymapsReady = new Promise(resolve => {
+			window.ymaps.ready(resolve)
+		})
+	}
+
+	await state.ymapsReady
+
+	if (state.adminMap) return state.adminMap
+
+	state.adminMap = new window.ymaps.Map(
+		'adminMapPreview',
+		{
+			center: [56.334612, 44.103409],
+			zoom: 15,
+			controls: ['zoomControl'],
+		},
+		{
+			suppressMapOpenBlock: true,
+		}
+	)
+
+	state.adminPlacemark = new window.ymaps.Placemark(
+		[56.334612, 44.103409],
+		{},
+		{
+			preset: 'islands#darkGrayDotIcon',
+			draggable: true,
+		}
+	)
+
+	state.adminPlacemark.events.add('dragend', () => {
+		const coords = state.adminPlacemark.geometry.getCoordinates()
+		void reverseGeocodeCoordinates(coords)
+	})
+
+	state.adminMap.events.add('click', event => {
+		const coords = event.get('coords')
+		void reverseGeocodeCoordinates(coords)
+	})
+
+	state.adminMap.geoObjects.add(state.adminPlacemark)
+	return state.adminMap
+}
+
+function updateAdminMapPoint(coords, options = {}) {
+	if (!state.adminMap || !state.adminPlacemark || !Array.isArray(coords)) return
+
+	const [latitude, longitude] = coords
+	state.adminMapCoordinates = [latitude, longitude]
+	state.adminPlacemark.geometry.setCoordinates([latitude, longitude])
+
+	if (options.center !== false) {
+		state.adminMap.setCenter([latitude, longitude], state.adminMap.getZoom(), {
+			duration: 200,
+		})
+	}
+
+	if (elements.contactsForm?.elements.namedItem('mapUrl')) {
+		elements.contactsForm.elements.namedItem('mapUrl').value = buildMapURL(
+			latitude,
+			longitude
+		)
+	}
+	if (typeof options.address === 'string') {
+		state.adminMapAddress = options.address
+	}
+}
+
+async function reverseGeocodeCoordinates(coords) {
+	const map = await ensureAdminMap()
+	if (!map || !window.ymaps) return
+
+	updateAdminMapPoint(coords, { center: true })
+
+	try {
+		const result = await window.ymaps.geocode(coords)
+		const first = result.geoObjects.get(0)
+		const address =
+			first?.getAddressLine?.() ||
+			first?.properties?.get('text') ||
+			first?.properties?.get('name') ||
+			''
+
+		if (address) {
+			state.adminMapAddress = address
+		}
+	} catch (error) {
+		console.error(error)
+	}
 }
 
 async function refreshVacancies() {
@@ -173,11 +297,18 @@ function renderVacancies() {
 		item.innerHTML = `
 			<div class="admin-vacancy-card__content">
 				<div class="admin-vacancy-card__meta">
-					<span class="admin-badge ${
-						vacancy.active ? 'admin-badge_success' : 'admin-badge_muted'
-					}">
-						${vacancy.active ? 'Опубликована' : 'Скрыта'}
-					</span>
+					<label class="admin-publish-toggle">
+						<input
+							class="admin-publish-toggle__input"
+							data-toggle-active="${vacancy.id}"
+							type="checkbox"
+							${vacancy.active ? 'checked' : ''}
+						/>
+						<span class="admin-publish-toggle__control"></span>
+						<span class="admin-publish-toggle__label">
+							${vacancy.active ? 'Опубликована' : 'Скрыта'}
+						</span>
+					</label>
 					<span class="admin-vacancy-card__order">Вакансия ${index + 1}</span>
 				</div>
 				<h3 class="admin-vacancy-card__title">${escapeHtml(vacancy.title)}</h3>
@@ -283,6 +414,16 @@ function handleVacancyListClick(event) {
 	}
 }
 
+function handleVacancyListChange(event) {
+	const toggle = event.target.closest('[data-toggle-active]')
+	if (!toggle) return
+
+	const id = Number(toggle.dataset.toggleActive)
+	if (!id) return
+
+	void updateVacancyActive(id, toggle.checked, toggle)
+}
+
 function handleTrashListClick(event) {
 	const button = event.target.closest('[data-trash-action]')
 	if (!button) return
@@ -316,7 +457,9 @@ async function handleVacancySubmit(event) {
 		duties: joinListEditorItems('duties'),
 		requirements: joinListEditorItems('requirements'),
 		conditions: joinListEditorItems('conditions'),
-		active: elements.vacancyForm.elements.namedItem('active').checked,
+		active: vacancyId
+			? Boolean(findVacancy(vacancyId)?.active)
+			: true,
 	}
 
 	elements.saveVacancyButton.disabled = true
@@ -558,6 +701,46 @@ async function moveVacancy(id, direction) {
 	}
 }
 
+async function updateVacancyActive(id, active, toggle) {
+	const vacancy = findVacancy(id)
+	if (!vacancy) return
+
+	const previousActive = vacancy.active
+	vacancy.active = active
+	renderVacancies()
+
+	try {
+		await api(`/api/admin/vacancies/${id}`, {
+			method: 'PUT',
+			body: JSON.stringify({
+				title: vacancy.title,
+				salary: vacancy.salary,
+				summary: vacancy.summary || '',
+				schedule: vacancy.schedule || '',
+				duties: vacancy.duties || '',
+				requirements: vacancy.requirements || '',
+				conditions: vacancy.conditions || '',
+				active,
+			}),
+		})
+
+		if (state.selectedVacancyId === id) {
+			const selected = findVacancy(id)
+			if (selected) fillVacancyForm(selected)
+		}
+
+		showToast(
+			active ? 'Вакансия опубликована на сайте.' : 'Вакансия скрыта с сайта.'
+		)
+	} catch (error) {
+		console.error(error)
+		vacancy.active = previousActive
+		renderVacancies()
+		if (toggle) toggle.checked = previousActive
+		showToast(getErrorMessage(error, 'Не удалось изменить публикацию вакансии.'), 'error')
+	}
+}
+
 function fillVacancyForm(vacancy) {
 	if (!hasVacancyUI()) return
 
@@ -576,7 +759,6 @@ function fillVacancyForm(vacancy) {
 		'conditions',
 		vacancy.conditionsList || splitLines(vacancy.conditions)
 	)
-	elements.vacancyForm.elements.namedItem('active').checked = Boolean(vacancy.active)
 	elements.vacancyFormTitle.textContent = `Редактирование: ${vacancy.title}`
 
 	renderVacancies()
@@ -588,7 +770,6 @@ function resetVacancyForm() {
 	state.selectedVacancyId = null
 	elements.vacancyForm.reset()
 	elements.vacancyForm.elements.namedItem('id').value = ''
-	elements.vacancyForm.elements.namedItem('active').checked = true
 	resetListEditors()
 	elements.vacancyFormTitle.textContent = 'Создание новой вакансии'
 	setVacancyStatus('')
@@ -622,12 +803,19 @@ async function handleContactsSubmit(event) {
 	setStatus('Сохраняю...')
 
 	try {
+		const coordinates = Array.isArray(state.adminMapCoordinates)
+			? state.adminMapCoordinates
+			: [56.334612, 44.103409]
+
 		await api('/api/admin/contacts', {
 			method: 'PUT',
 			body: JSON.stringify({
 				phones: readText(formData.get('phones')),
 				email: readText(formData.get('email')),
-				address: state.contactsAddress,
+				address: state.adminMapAddress,
+				mapLatitude: coordinates[0],
+				mapLongitude: coordinates[1],
+				mapUrl: readText(formData.get('mapUrl')),
 				vk: readText(formData.get('vk')),
 				telegram: readText(formData.get('telegram')),
 				whatsapp: readText(formData.get('whatsapp')),
@@ -685,6 +873,10 @@ async function api(url, options = {}, expectJson = true) {
 
 function readText(value) {
 	return String(value ?? '').trim()
+}
+
+function buildMapURL(latitude, longitude) {
+	return `https://yandex.ru/maps/?ll=${longitude}%2C${latitude}&z=17&pt=${longitude},${latitude},pm2rdm`
 }
 
 function setStatus(message, isError = false) {

@@ -734,11 +734,39 @@
 			<script type="text/javascript">
 				ymaps.ready(init)
 
-				function init() {
+				async function init() {
+					const fallbackContacts = {
+						address: "Стеклозаводское шоссе, 16к13",
+						mapLatitude: 56.334612,
+						mapLongitude: 44.103409,
+						mapUrl: "https://yandex.ru/maps/-/CHtIrG~I",
+						email: "borhrauto@aigrus.ru",
+						phonesList: ["+7(987) 532-02-32", "+7(910) 057-28-87"],
+					}
+
+					let contacts = fallbackContacts
+
+					try {
+						const response = await fetch("/api/contacts")
+						if (response.ok) {
+							contacts = await response.json()
+						}
+					} catch (error) {
+						console.error(error)
+					}
+
+					const latitude = Number.isFinite(contacts.mapLatitude)
+						? contacts.mapLatitude
+						: fallbackContacts.mapLatitude
+					const longitude = Number.isFinite(contacts.mapLongitude)
+						? contacts.mapLongitude
+						: fallbackContacts.mapLongitude
+					const destination = [latitude, longitude]
+
 					var map = new ymaps.Map(
 						"map",
 						{
-							center: [56.334612, 44.103409],
+							center: destination,
 							zoom: 15,
 							controls: [],
 						},
@@ -750,9 +778,7 @@
 
 					const svgMarker = `
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="40" height="40">
-                
                     <circle cx="50" cy="50" r="25" fill="#718896" />
-                    
                     <circle cx="50" cy="50" r="30" fill="none" stroke="#2d2d2d" stroke-width="4">
                         <animate attributeName="r" from="30" to="45" dur="1.5s" repeatCount="indefinite" />
                         <animate attributeName="opacity" from="1" to="0" dur="1.5s" repeatCount="indefinite" />
@@ -760,17 +786,33 @@
                 </svg>
             `
 
+					const primaryPhone =
+						Array.isArray(contacts.phonesList) && contacts.phonesList.length
+							? contacts.phonesList[0]
+							: ""
+					const mapUrl =
+						contacts.mapUrl ||
+						`https://yandex.ru/maps/?ll=${longitude}%2C${latitude}&z=17&pt=${longitude},${latitude},pm2rdm`
+
 					var placemark = new ymaps.Placemark(
-						[56.334612, 44.103409],
+						destination,
 						{
 							balloonContentHeader: "Наш адрес",
 							balloonContentBody: `
-                    <p>Стеклозаводское шоссе, 16к13</p>
-                    <p><a href="tel:+79101218935">+7 (910)-121-89-35</a></p>
-                    <p><a href="mailto:borhrauto@aigrus.ru">borhrauto@aigrus.ru</a></p>
+                    ${contacts.address ? `<p>${contacts.address}</p>` : ""}
+                    ${
+											primaryPhone
+												? `<p><a href="tel:${primaryPhone.replace(/[^\d+]/g, "")}">${primaryPhone}</a></p>`
+												: ""
+										}
+                    ${
+											contacts.email
+												? `<p><a href="mailto:${contacts.email}">${contacts.email}</a></p>`
+												: ""
+										}
                 `,
 							balloonContentFooter:
-								'<a href="https://yandex.ru/maps/-/CHtIrG~I" target="_blank" rel="noopener noreferrer">Открыть в Яндекс.Картах</a>',
+								`<a href="${mapUrl}" target="_blank" rel="noopener noreferrer">Открыть в Яндекс.Картах</a>`,
 						},
 						{
 							iconLayout: "default#image",
@@ -795,10 +837,7 @@
 					routeButton.events.add("click", function () {
 						ymaps.geolocation.get().then(function (userLocation) {
 							ymaps
-								.route([
-									userLocation.geoObjects.position,
-									[56.334612, 44.103409],
-								])
+								.route([userLocation.geoObjects.position, destination])
 								.then(function (route) {
 									map.geoObjects.add(route)
 								})

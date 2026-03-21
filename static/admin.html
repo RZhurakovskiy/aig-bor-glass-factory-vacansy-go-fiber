@@ -80,11 +80,6 @@
 										<span class="admin-field__label">Зарплата</span>
 										<input class="admin-input" name="salary" type="text" />
 									</label>
-
-									<label class="admin-field admin-field_checkbox">
-										<input class="admin-checkbox" name="active" type="checkbox" />
-										<span class="admin-field__label">Показывать вакансию на сайте</span>
-									</label>
 								</div>
 
 								<div class="admin-form-section">
@@ -227,6 +222,27 @@
 									</label>
 								</div>
 
+								<div class="admin-form-section">
+									<div class="admin-form-section__head">
+										<h3 class="admin-form-section__title">Карта</h3>
+									</div>
+
+									<label class="admin-field">
+										<span class="admin-field__label">Ссылка на Яндекс.Карты</span>
+										<input
+											class="admin-input"
+											name="mapUrl"
+											type="url"
+											placeholder="https://yandex.ru/maps/..."
+										/>
+									</label>
+
+									<div class="admin-map-note">
+										Двигайте метку мышкой или кликните по карте, чтобы обновить точку.
+									</div>
+									<div class="admin-map-preview" id="adminMapPreview"></div>
+								</div>
+
 								<div class="admin-actions">
 									<button class="admin-btn admin-btn_primary" id="saveButton" type="button">
 										Сохранить контакты
@@ -296,6 +312,10 @@
 
 		<div class="admin-toast-stack" id="toastStack" aria-live="polite" aria-atomic="true"></div>
 
+		<script
+			src="https://api-maps.yandex.ru/2.1/?lang=ru_RU"
+			type="text/javascript"
+		></script>
 		<script src="./js/admin.js"></script>
 	</body>
 </html>

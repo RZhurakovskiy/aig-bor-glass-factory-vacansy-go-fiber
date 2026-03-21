@@ -61,22 +61,28 @@ type vacancyOrderPayload struct {
 }
 
 type contactPayload struct {
-	Phones   string `json:"phones"`
-	Email    string `json:"email"`
-	Address  string `json:"address"`
-	VK       string `json:"vk"`
-	Telegram string `json:"telegram"`
-	WhatsApp string `json:"whatsapp"`
+	Phones       string  `json:"phones"`
+	Email        string  `json:"email"`
+	Address      string  `json:"address"`
+	MapLatitude  float64 `json:"mapLatitude"`
+	MapLongitude float64 `json:"mapLongitude"`
+	MapURL       string  `json:"mapUrl"`
+	VK           string  `json:"vk"`
+	Telegram     string  `json:"telegram"`
+	WhatsApp     string  `json:"whatsapp"`
 }
 
 type contactResponse struct {
-	Phones     string   `json:"phones"`
-	PhonesList []string `json:"phonesList"`
-	Email      string   `json:"email"`
-	Address    string   `json:"address"`
-	VK         string   `json:"vk"`
-	Telegram   string   `json:"telegram"`
-	WhatsApp   string   `json:"whatsapp"`
+	Phones       string   `json:"phones"`
+	PhonesList   []string `json:"phonesList"`
+	Email        string   `json:"email"`
+	Address      string   `json:"address"`
+	MapLatitude  float64  `json:"mapLatitude"`
+	MapLongitude float64  `json:"mapLongitude"`
+	MapURL       string   `json:"mapUrl"`
+	VK           string   `json:"vk"`
+	Telegram     string   `json:"telegram"`
+	WhatsApp     string   `json:"whatsapp"`
 }
 
 func New(db *gorm.DB, adminPassword string, sessionSecret []byte, sessionTTL time.Duration) *Handler {
@@ -418,6 +424,9 @@ func (h *Handler) UpdateContacts(c *fiber.Ctx) error {
 	contact.Phones = normalizeMultiline(payload.Phones)
 	contact.Email = strings.TrimSpace(payload.Email)
 	contact.Address = strings.TrimSpace(payload.Address)
+	contact.MapLatitude = payload.MapLatitude
+	contact.MapLongitude = payload.MapLongitude
+	contact.MapURL = strings.TrimSpace(payload.MapURL)
 	contact.VK = strings.TrimSpace(payload.VK)
 	contact.Telegram = strings.TrimSpace(payload.Telegram)
 	contact.WhatsApp = strings.TrimSpace(payload.WhatsApp)
@@ -457,13 +466,16 @@ func toVacancyResponse(v models.Vacancy) vacancyResponse {
 
 func toContactResponse(contact models.Contact) contactResponse {
 	return contactResponse{
-		Phones:     contact.Phones,
-		PhonesList: models.SplitLines(contact.Phones),
-		Email:      contact.Email,
-		Address:    contact.Address,
-		VK:         contact.VK,
-		Telegram:   contact.Telegram,
-		WhatsApp:   contact.WhatsApp,
+		Phones:       contact.Phones,
+		PhonesList:   models.SplitLines(contact.Phones),
+		Email:        contact.Email,
+		Address:      contact.Address,
+		MapLatitude:  contact.MapLatitude,
+		MapLongitude: contact.MapLongitude,
+		MapURL:       contact.MapURL,
+		VK:           contact.VK,
+		Telegram:     contact.Telegram,
+		WhatsApp:     contact.WhatsApp,
 	}
 }
 

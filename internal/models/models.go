@@ -22,15 +22,18 @@ type Vacancy struct {
 }
 
 type Contact struct {
-	ID        uint `gorm:"primaryKey"`
-	Phones    string
-	Email     string
-	Address   string
-	VK        string
-	Telegram  string
-	WhatsApp  string
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ID           uint `gorm:"primaryKey"`
+	Phones       string
+	Email        string
+	Address      string
+	MapLatitude  float64
+	MapLongitude float64
+	MapURL       string
+	VK           string
+	Telegram     string
+	WhatsApp     string
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
 }
 
 func SplitLines(value string) []string {
@@ -62,12 +65,15 @@ func JoinLines(lines []string) string {
 
 func DefaultContact() Contact {
 	return Contact{
-		ID:       1,
-		Phones:   JoinLines([]string{"+7(987) 532-02-32", "+7(910) 057-28-87"}),
-		Email:    "borhrauto@aigrus.ru",
-		Address:  "Стеклозаводское шоссе, 16к13",
-		VK:       "",
-		Telegram: "",
-		WhatsApp: "",
+		ID:           1,
+		Phones:       JoinLines([]string{"+7(987) 532-02-32", "+7(910) 057-28-87"}),
+		Email:        "borhrauto@aigrus.ru",
+		Address:      "Стеклозаводское шоссе, 16к13",
+		MapLatitude:  56.334612,
+		MapLongitude: 44.103409,
+		MapURL:       "https://yandex.ru/maps/-/CHtIrG~I",
+		VK:           "",
+		Telegram:     "",
+		WhatsApp:     "",
 	}
 }
