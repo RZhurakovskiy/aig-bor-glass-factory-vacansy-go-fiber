@@ -1,15 +1,15 @@
 /* Base */ /* Reset and base styles  */
-@import url('https://fonts.googleapis.com/css2?family=Inria+Sans:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Inria+Sans:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&family=Koulen&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Inria+Sans:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inria+Sans:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&family=Koulen&display=swap");
 /* Font-display swap for faster text render */
 @font-face {
-	font-family: 'Inria Sans';
+	font-family: "Inria Sans";
 	font-style: normal;
 	font-weight: 400;
 	font-display: swap;
 }
 @font-face {
-	font-family: 'Koulen';
+	font-family: "Koulen";
 	font-style: normal;
 	font-weight: 400;
 	font-display: swap;
@@ -88,7 +88,7 @@ input::-ms-clear {
 }
 
 button,
-input[type='submit'] {
+input[type="submit"] {
 	display: inline-block;
 	box-shadow: none;
 	background-color: transparent;
@@ -120,7 +120,7 @@ legend {
 	--container-width: 1200px;
 	--container-padding: 15px;
 	--font-main: sans-serif;
-	--font-accent: 'Manrope', sans-serif;
+	--font-accent: "Manrope", sans-serif;
 	--font-titles: var(--font-accent);
 	--page-bg: #fff;
 	--text-color: #000;
@@ -138,7 +138,7 @@ legend {
 
 html,
 body {
-	font-family: 'Inria Sans', sans-serif;
+	font-family: "Inria Sans", sans-serif;
 	background-color: #e8e8e8;
 	scroll-behavior: smooth;
 }
@@ -337,11 +337,8 @@ body {
 	min-width: clamp(138px, 11vw, 176px);
 	padding: clamp(10px, 0.9vw, 12px) clamp(16px, 1.4vw, 22px);
 	border: 1px solid transparent;
-	transition:
-		background-color 0.2s ease,
-		border-color 0.2s ease,
-		color 0.2s ease,
-		box-shadow 0.2s ease;
+	transition: background-color 0.2s ease, border-color 0.2s ease,
+		color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .header-content__button-vacancy {
@@ -357,7 +354,7 @@ body {
 }
 
 .header-content__button-about::before {
-	content: '';
+	content: "";
 	position: absolute;
 	inset: 0;
 	background-color: #ffffff;
@@ -424,8 +421,7 @@ body {
 }
 
 .header {
-	background-image:
-		linear-gradient(
+	background-image: linear-gradient(
 			90deg,
 			rgba(8, 10, 13, 0.84) 0%,
 			rgba(8, 10, 13, 0.68) 42%,
@@ -449,8 +445,11 @@ body {
 }
 
 .header-shape {
-	background:
-		linear-gradient(180deg, rgba(0, 0, 0, 0.26) 0%, rgba(0, 0, 0, 0.5) 100%);
+	background: linear-gradient(
+		180deg,
+		rgba(0, 0, 0, 0.26) 0%,
+		rgba(0, 0, 0, 0.5) 100%
+	);
 	position: absolute;
 	bottom: 0;
 	top: 0;
@@ -555,7 +554,7 @@ body {
 
 .menu-close::before,
 .menu-close::after {
-	content: '';
+	content: "";
 	position: absolute;
 	width: 16px;
 	height: 2px;
@@ -639,7 +638,7 @@ body {
 }
 
 .main-nav-list ul li a::after {
-	content: '';
+	content: "";
 	position: absolute;
 	left: 8px;
 	bottom: 8px;
@@ -687,7 +686,7 @@ body.menu-open {
 .menu-btn span::before,
 .menu-btn span::after {
 	background: #ffffff;
-	content: '';
+	content: "";
 	position: absolute;
 	width: 40px;
 	height: 4px;
@@ -737,6 +736,7 @@ body.menu-open {
 	backdrop-filter: blur(16px);
 	-webkit-backdrop-filter: blur(16px);
 	border: 1px solid rgba(255, 255, 255, 0.12);
+	border-radius: 14px;
 	padding: 0 18px;
 	position: fixed;
 	top: 8px;
@@ -745,11 +745,8 @@ body.menu-open {
 	transform: translateX(-50%);
 	z-index: 5;
 	box-shadow: 0 18px 40px rgba(0, 0, 0, 0.22);
-	transition:
-		opacity 0.5s ease-in-out,
-		background-color 0.3s ease,
-		border-color 0.3s ease,
-		box-shadow 0.3s ease;
+	transition: opacity 0.5s ease-in-out, background-color 0.3s ease,
+		border-color 0.3s ease, box-shadow 0.3s ease;
 }
 .nav-bar__row {
 	display: flex;
@@ -845,7 +842,7 @@ body.menu-open {
 .about-card {
 	width: 100%;
 	background-color: #f6f6f6;
-	border-radius: 25px;
+	border-radius: 14px;
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
@@ -879,7 +876,7 @@ body.menu-open {
 	gap: 20px;
 }
 .about-card__image img {
-	border-radius: 20px;
+	border-radius: 12px;
 	max-width: 680px;
 	width: 100%;
 }
@@ -1171,7 +1168,7 @@ body.menu-open {
 	z-index: 2;
 }
 .corevalues-card__title span {
-	font-family: 'Koulen', sans-serif;
+	font-family: "Koulen", sans-serif;
 	font-weight: 400;
 	font-size: 160px;
 	color: #161616;
@@ -1179,7 +1176,7 @@ body.menu-open {
 	z-index: 1;
 }
 .corevalues-card__title span::after {
-	content: '';
+	content: "";
 	position: absolute;
 	width: 70px;
 	height: 70px;
@@ -1267,7 +1264,7 @@ body.menu-open {
 	width: 100%;
 	height: 100%;
 	object-fit: cover;
-	border-radius: 30px;
+	border-radius: 14px;
 }
 
 .slide {
@@ -1428,8 +1425,15 @@ img {
 	margin-top: 20px;
 	margin-bottom: 80px;
 	overflow: hidden;
-	border-radius: 25px;
-	background-color: #f6f6f6;
+	position: relative;
+	border: 1px solid rgba(22, 22, 22, 0.08);
+	border-radius: 14px;
+	background: linear-gradient(
+		180deg,
+		rgba(255, 255, 255, 0.96) 0%,
+		rgba(240, 240, 240, 0.9) 100%
+	);
+	box-shadow: 0 22px 44px rgba(0, 0, 0, 0.05);
 	padding: 50px;
 }
 .vacancy__title {
@@ -1453,33 +1457,58 @@ img {
 	-webkit-box-pack: center;
 	-ms-flex-pack: center;
 	justify-content: center;
-	margin-bottom: 30px;
+	margin-bottom: 36px;
+	padding: 18px;
+	border: 1px solid rgba(22, 22, 22, 0.12);
+	border-radius: 12px;
+	background: transparent;
+	box-shadow: none;
 }
 
 .tab-button {
+	position: relative;
+	overflow: hidden;
+	isolation: isolate;
 	min-width: 200px;
-	height: 50px;
-	padding: 10px 16px;
+	height: 46px;
+	padding: 10px 18px;
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
 	gap: 8px;
 	font-weight: 600;
-	font-size: clamp(13px, 1.2vw, 14px);
+	font-size: clamp(12px, 1vw, 14px);
+	letter-spacing: 0.02em;
 	color: #161616;
-	border: 2px solid #161616;
-	border-radius: 999px;
-	background-color: rgba(22, 22, 22, 0.04);
-	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+	border: 1px solid rgba(22, 22, 22, 0.24);
+	border-radius: 10px;
+	background: rgba(255, 255, 255, 0.28);
+	box-shadow: none;
 	transition: background-color 0.25s ease, color 0.25s ease,
-		border-color 0.25s ease, box-shadow 0.25s ease, transform 0.15s ease;
+		border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.tab-button::before {
+	content: "";
+	position: absolute;
+	inset: -1px;
+	background: linear-gradient(
+		108deg,
+		transparent 0%,
+		transparent 38%,
+		rgba(255, 255, 255, 0.55) 50%,
+		transparent 62%,
+		transparent 100%
+	);
+	transform: translateX(-140%);
+	pointer-events: none;
+	z-index: -1;
 }
 
 .tab-button:hover:not(.active),
 .tab-button:focus-visible:not(.active) {
-	background-color: rgba(22, 22, 22, 0.08);
-	box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
-	transform: translateY(-1px);
+	background: rgba(22, 22, 22, 0.05);
+	border-color: rgba(22, 22, 22, 0.38);
 }
 
 .tab-button:focus-visible {
@@ -1488,16 +1517,34 @@ img {
 }
 
 .tab-button:active {
-	transform: translateY(0);
-	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12) inset;
+	box-shadow: inset 0 0 0 1px rgba(22, 22, 22, 0.08);
 }
 
 .tab-button.active {
-	background-color: #161616;
-	color: #f6f6f6;
-	border-color: #161616;
-	box-shadow: 0 10px 18px rgba(0, 0, 0, 0.2),
-		0 1px 0 rgba(255, 255, 255, 0.06) inset;
+	color: #ffffff;
+	border-color: rgba(255, 255, 255, 0.12);
+	background: linear-gradient(
+		180deg,
+		rgba(42, 42, 42, 0.92) 0%,
+		rgba(28, 28, 28, 0.96) 100%
+	);
+	backdrop-filter: blur(12px);
+	-webkit-backdrop-filter: blur(12px);
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14),
+		inset 0 -1px 0 rgba(255, 255, 255, 0.04), 0 12px 24px rgba(24, 24, 24, 0.18);
+}
+
+.tab-button.active::before {
+	animation: vacancy-tab-sheen 0.9s ease;
+}
+
+@keyframes vacancy-tab-sheen {
+	from {
+		transform: translateX(-140%);
+	}
+	to {
+		transform: translateX(140%);
+	}
 }
 
 .vacancy-card__item {
@@ -1511,9 +1558,10 @@ img {
 	left: 0;
 	right: 0;
 	top: 0;
-	border-radius: 25px;
+	border: 1px solid rgba(255, 255, 255, 0.08);
+	border-radius: 14px;
 	padding: 50px;
-	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+	box-shadow: 0 16px 40px rgba(0, 0, 0, 0.14);
 	opacity: 0;
 	transform: translateY(8px) scale(0.98);
 	visibility: hidden;
@@ -1523,20 +1571,15 @@ img {
 	background-color: #161616;
 	color: #e8e8e8;
 	background-image: linear-gradient(
-			to bottom right,
-			transparent 0%,
-			transparent 33.33%,
-			rgba(255, 0, 0, 0.5) 33.33%,
-			rgba(255, 0, 0, 0.5) 66.66%,
-			transparent 66.66%,
-			transparent 100%
+			135deg,
+			rgba(236, 0, 0, 0.3) 0%,
+			rgba(236, 0, 0, 0.16) 28%,
+			rgba(236, 0, 0, 0) 48%
 		),
 		linear-gradient(
-			to bottom right,
-			transparent 0%,
-			transparent 66.66%,
-			rgba(255, 0, 0, 0.5) 66.66%,
-			rgba(255, 0, 0, 0.5) 100%
+			90deg,
+			rgba(255, 255, 255, 0.04) 0%,
+			rgba(255, 255, 255, 0) 58%
 		);
 }
 
@@ -1605,13 +1648,13 @@ img {
 .vacancy-card__number {
 	position: relative;
 	z-index: 1;
-	font-family: 'Koulen', sans-serif;
+	font-family: "Koulen", sans-serif;
 	font-weight: 400;
 	font-size: 86px;
 }
 
 .vacancy-card__number-block::before {
-	content: '';
+	content: "";
 	position: absolute;
 	right: 50%;
 	top: 58%;
@@ -1635,7 +1678,7 @@ img {
 	margin-bottom: 10px;
 	padding: 8px 14px;
 	border: 1px solid rgba(255, 255, 255, 0.24);
-	border-radius: 999px;
+	border-radius: 10px;
 	background: rgba(255, 255, 255, 0.08);
 	font-size: clamp(14px, 1.4vw, 16px);
 	font-weight: 700;
@@ -1678,9 +1721,12 @@ img {
 	gap: 18px;
 	padding: 42px 46px;
 	border: 1px solid rgba(22, 22, 22, 0.1);
-	border-radius: 28px;
-	background:
-		linear-gradient(135deg, rgba(22, 22, 22, 0.03) 0%, rgba(22, 22, 22, 0) 46%),
+	border-radius: 14px;
+	background: linear-gradient(
+			135deg,
+			rgba(22, 22, 22, 0.03) 0%,
+			rgba(22, 22, 22, 0) 46%
+		),
 		#f6f6f6;
 	box-shadow: 0 14px 32px rgba(0, 0, 0, 0.04);
 }
@@ -1775,7 +1821,7 @@ img {
 	}
 	.vacancy-empty-state {
 		padding: 28px 24px;
-		border-radius: 22px;
+		border-radius: 12px;
 	}
 	.vacancy-card {
 		padding: 35px;
@@ -1848,7 +1894,7 @@ img {
 	position: relative;
 }
 .nav-bar__item a::after {
-	content: '';
+	content: "";
 	position: absolute;
 	left: 0;
 	bottom: -6px;

@@ -31,7 +31,7 @@
 	--admin-toggle-off: #d0d5dd;
 	--admin-count-bg: rgba(22, 22, 22, 0.08);
 	--admin-count-bg-hover: rgba(22, 22, 22, 0.12);
-	--admin-radius: 18px;
+	--admin-radius: 14px;
 	--admin-font: -apple-system, BlinkMacSystemFont, "SF Pro Text",
 		"SF Pro Display", "Helvetica Neue", Arial, sans-serif;
 }
@@ -124,7 +124,7 @@ body.admin-modal-open {
 	padding: 26px 28px;
 	margin-bottom: 20px;
 	border: 1px solid var(--admin-topbar-border);
-	border-radius: 22px;
+	border-radius: 14px;
 	background: var(--admin-topbar-bg);
 	box-shadow: 0 18px 44px rgba(15, 23, 42, 0.06);
 }
@@ -220,7 +220,7 @@ body.admin-modal-open {
 	gap: 12px;
 	padding: 12px 14px;
 	border: 1px solid transparent;
-	border-radius: 14px;
+	border-radius: 12px;
 	background: transparent;
 	color: var(--admin-text);
 	text-decoration: none;
@@ -373,7 +373,7 @@ body.admin-modal-open {
 .admin-vacancies-empty {
 	padding: 18px;
 	border: 1px dashed var(--admin-border);
-	border-radius: 14px;
+	border-radius: 12px;
 	background: var(--admin-surface-muted);
 }
 
@@ -389,7 +389,7 @@ body.admin-modal-open {
 	gap: 14px;
 	padding: 16px;
 	border: 1px solid var(--admin-border);
-	border-radius: 16px;
+	border-radius: 14px;
 	background: var(--admin-surface-muted);
 	box-shadow: var(--admin-card-shadow);
 }
@@ -523,7 +523,7 @@ body.admin-modal-open {
 	gap: 16px;
 	padding: 16px;
 	border: 1px solid var(--admin-border);
-	border-radius: 16px;
+	border-radius: 14px;
 	background: var(--admin-surface-muted);
 }
 
@@ -567,7 +567,7 @@ body.admin-modal-open {
 	min-height: auto;
 	padding: 12px 14px;
 	border: 1px solid var(--admin-border);
-	border-radius: 12px;
+	border-radius: 10px;
 	background: var(--admin-surface-muted);
 	gap: 12px;
 }
@@ -582,7 +582,7 @@ body.admin-modal-open {
 	width: 100%;
 	padding: 12px 14px;
 	border: 1px solid var(--admin-border);
-	border-radius: 12px;
+	border-radius: 10px;
 	background: var(--admin-surface);
 	font: inherit;
 	font-size: 16px;
@@ -646,7 +646,7 @@ body.admin-modal-open {
 	white-space: nowrap;
 	padding: 12px 18px;
 	border: 1px solid var(--admin-border);
-	border-radius: 12px;
+	border-radius: 10px;
 	background: var(--admin-surface);
 	font: inherit;
 	font-size: 15px;
@@ -752,7 +752,7 @@ body.admin-modal-open {
 .admin-map-preview {
 	min-height: 320px;
 	border: 1px solid var(--admin-border);
-	border-radius: 16px;
+	border-radius: 14px;
 	overflow: hidden;
 	background: var(--admin-map-bg);
 }
@@ -791,7 +791,7 @@ body.admin-modal-open {
 	width: min(100%, 420px);
 	padding: 24px;
 	border: 1px solid var(--admin-border);
-	border-radius: 18px;
+	border-radius: 14px;
 	background: var(--admin-surface);
 	box-shadow: 0 28px 64px rgba(15, 23, 42, 0.16);
 }
@@ -861,7 +861,7 @@ body.admin-modal-open {
 	gap: 18px;
 	padding: 18px 18px 16px;
 	border: 1px solid var(--admin-border);
-	border-radius: 20px;
+	border-radius: 14px;
 	background: var(--admin-surface);
 	backdrop-filter: blur(18px);
 	box-shadow: 0 22px 48px rgba(15, 23, 42, 0.16);
@@ -888,7 +888,7 @@ body.admin-modal-open {
 	gap: 10px;
 	padding: 12px;
 	border: 1px solid var(--admin-border);
-	border-radius: 16px;
+	border-radius: 12px;
 	background: var(--admin-surface-muted);
 }
 
@@ -931,7 +931,7 @@ body.admin-modal-open {
 .admin-theme-switcher__button {
 	padding: 10px 12px;
 	border: 1px solid var(--admin-border);
-	border-radius: 12px;
+	border-radius: 10px;
 	background: var(--admin-surface);
 	color: var(--admin-text);
 	font: inherit;
@@ -950,7 +950,7 @@ body.admin-modal-open {
 	justify-self: start;
 	padding: 10px 14px;
 	border: 1px solid var(--admin-border);
-	border-radius: 12px;
+	border-radius: 10px;
 	background: var(--admin-surface);
 	color: var(--admin-text);
 	font: inherit;
@@ -971,7 +971,7 @@ body.admin-modal-open {
 	overflow: hidden;
 	padding: 16px 18px;
 	border: 1px solid transparent;
-	border-radius: 14px;
+	border-radius: 12px;
 	box-shadow: 0 18px 42px rgba(0, 0, 0, 0.18);
 	font-size: 15px;
 	font-weight: 600;
