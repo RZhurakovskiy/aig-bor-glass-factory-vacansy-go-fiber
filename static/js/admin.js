@@ -53,6 +53,7 @@ const elements = {
 	confirmDeleteVacancyButton: document.getElementById('confirmDeleteVacancyButton'),
 	cancelDeleteVacancyButton: document.getElementById('cancelDeleteVacancyButton'),
 	listEditors: {
+		phones: document.querySelector('[data-list-editor="phones"]'),
 		schedule: document.querySelector('[data-list-editor="schedule"]'),
 		duties: document.querySelector('[data-list-editor="duties"]'),
 		requirements: document.querySelector('[data-list-editor="requirements"]'),
@@ -132,6 +133,7 @@ async function bootstrap() {
 function bindEvents() {
 	if (isContactsPage() && elements.contactsForm) {
 		elements.contactsForm.addEventListener('submit', handleContactsSubmit)
+		elements.contactsForm.addEventListener('click', handleContactsFormClick)
 	}
 	if (isContactsPage() && elements.saveButton) {
 		elements.saveButton.addEventListener('click', handleContactsSubmit)
@@ -234,7 +236,7 @@ function isMetricsPage() {
 async function refreshContacts() {
 	const contacts = await api('/api/admin/contacts')
 
-	elements.contactsForm.elements.namedItem('phones').value = contacts.phones || ''
+	setListEditorItems('phones', contacts.phonesList || splitLines(contacts.phones))
 	elements.contactsForm.elements.namedItem('email').value = contacts.email || ''
 	elements.contactsForm.elements.namedItem('mapUrl').value = contacts.mapUrl || ''
 	elements.contactsForm.elements.namedItem('vk').value = contacts.vk || ''
@@ -1234,7 +1236,7 @@ async function handleContactsSubmit(event) {
 		await api('/api/admin/contacts', {
 			method: 'PUT',
 			body: JSON.stringify({
-				phones: readText(formData.get('phones')),
+				phones: joinListEditorItems('phones'),
 				email: readText(formData.get('email')),
 				address: state.adminMapAddress,
 				mapLatitude: coordinates[0],
@@ -1256,6 +1258,19 @@ async function handleContactsSubmit(event) {
 	} finally {
 		elements.saveButton.disabled = false
 		setButtonLoading(submitButton, false)
+	}
+}
+
+function handleContactsFormClick(event) {
+	const addButton = event.target.closest('[data-add-list-item="phones"]')
+	if (addButton) {
+		addListEditorItem('phones')
+		return
+	}
+
+	const removeButton = event.target.closest('[data-remove-list-item="phones"]')
+	if (removeButton) {
+		removeListEditorItem('phones', removeButton)
 	}
 }
 

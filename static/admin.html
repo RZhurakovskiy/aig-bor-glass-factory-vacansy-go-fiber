@@ -363,14 +363,22 @@
 												</h3>
 											</div>
 
-											<label class="admin-field">
-												<span class="admin-field__label">Телефоны</span>
-												<textarea
-													class="admin-input admin-textarea"
-													name="phones"
-													placeholder="Один телефон на строку"
-												></textarea>
-											</label>
+											<div class="admin-field">
+												<div class="admin-field__head">
+													<span class="admin-field__label">Телефоны</span>
+												</div>
+												<div
+													class="admin-list-editor"
+													data-list-editor="phones"
+												></div>
+												<button
+													class="admin-btn admin-btn_compact admin-btn_add"
+													data-add-list-item="phones"
+													type="button"
+												>
+													Добавить пункт
+												</button>
+											</div>
 
 											<div class="admin-form__grid">
 												<label class="admin-field">
