@@ -595,34 +595,46 @@
 							</section>
 
 							<section class="admin-page" data-admin-page="metrics" hidden>
-								<div class="admin-layout">
-									<section class="admin-section">
-										<div class="admin-section__header">
-											<div>
-												<h2 class="admin-section__title">Сводка</h2>
-												<p class="admin-section__subtitle">
-													Общее состояние просмотров вакансий на сайте.
-												</p>
-											</div>
+								<section class="admin-section admin-section_full">
+									<div class="admin-section__header">
+										<div>
+											<h2 class="admin-section__title">Сводка</h2>
+											<p class="admin-section__subtitle">
+												Общее состояние просмотров вакансий на сайте.
+											</p>
 										</div>
+									</div>
 
-										<div class="admin-metrics-grid" id="metricsSummary">
-											<article class="admin-metric-card">
-												<div class="admin-metric-card__label">Всего просмотров</div>
-												<div class="admin-metric-card__value" id="metricTotalViews">0</div>
-											</article>
-											<article class="admin-metric-card">
-												<div class="admin-metric-card__label">Сегодня</div>
-												<div class="admin-metric-card__value" id="metricTodayViews">0</div>
-											</article>
-											<article class="admin-metric-card">
-												<div class="admin-metric-card__label">Уникальных IP</div>
-												<div class="admin-metric-card__value" id="metricUniqueIps">0</div>
-											</article>
-										</div>
-									</section>
+									<div class="admin-metrics-grid" id="metricsSummary">
+										<article class="admin-metric-card">
+											<div class="admin-metric-card__label">Всего просмотров</div>
+											<div class="admin-metric-card__value" id="metricTotalViews">0</div>
+										</article>
+										<article class="admin-metric-card">
+											<div class="admin-metric-card__label">Сегодня</div>
+											<div class="admin-metric-card__value" id="metricTodayViews">0</div>
+										</article>
+										<article class="admin-metric-card">
+											<div class="admin-metric-card__label">Уникальных IP</div>
+											<div class="admin-metric-card__value" id="metricUniqueIps">0</div>
+										</article>
+									</div>
+								</section>
 
-									<section class="admin-section">
+								<section class="admin-section admin-section_full">
+									<div class="admin-metrics-tabs" id="metricsTabs" role="tablist" aria-label="Срезы метрик">
+										<button class="admin-metrics-tab is-active" data-metrics-tab="vacancies" type="button" role="tab" aria-selected="true">
+											По вакансиям
+										</button>
+										<button class="admin-metrics-tab" data-metrics-tab="daily" type="button" role="tab" aria-selected="false">
+											По дням
+										</button>
+										<button class="admin-metrics-tab" data-metrics-tab="events" type="button" role="tab" aria-selected="false">
+											Последние просмотры
+										</button>
+									</div>
+
+									<div class="admin-metrics-panel" data-metrics-panel="vacancies">
 										<div class="admin-section__header">
 											<div>
 												<h2 class="admin-section__title">По вакансиям</h2>
@@ -637,24 +649,41 @@
 										</div>
 
 										<div class="admin-vacancies-list" id="metricsVacanciesList"></div>
-									</section>
-								</div>
+									</div>
 
-								<section class="admin-section admin-section_full">
-									<div class="admin-section__header">
-										<div>
-											<h2 class="admin-section__title">Последние просмотры</h2>
-											<p class="admin-section__subtitle">
-												Недавние события по просмотрам карточек вакансий.
-											</p>
+									<div class="admin-metrics-panel" data-metrics-panel="daily" hidden>
+										<div class="admin-section__header">
+											<div>
+												<h2 class="admin-section__title">Просмотры по дням</h2>
+												<p class="admin-section__subtitle">
+													Динамика просмотров за последние 14 дней.
+												</p>
+											</div>
 										</div>
+
+										<div class="admin-vacancies-empty" id="metricsDailyEmpty" hidden>
+											За последние 14 дней просмотров пока нет.
+										</div>
+
+										<div class="admin-metrics-days" id="metricsDailyList"></div>
 									</div>
 
-									<div class="admin-vacancies-empty" id="metricsEventsEmpty" hidden>
-										Событий просмотров пока нет.
-									</div>
+									<div class="admin-metrics-panel" data-metrics-panel="events" hidden>
+										<div class="admin-section__header">
+											<div>
+												<h2 class="admin-section__title">Последние просмотры</h2>
+												<p class="admin-section__subtitle">
+													Недавние события по просмотрам карточек вакансий.
+												</p>
+											</div>
+										</div>
 
-									<div class="admin-vacancies-list" id="metricsEventsList"></div>
+										<div class="admin-vacancies-empty" id="metricsEventsEmpty" hidden>
+											Событий просмотров пока нет.
+										</div>
+
+										<div class="admin-vacancies-list" id="metricsEventsList"></div>
+									</div>
 								</section>
 							</section>
 						</div>

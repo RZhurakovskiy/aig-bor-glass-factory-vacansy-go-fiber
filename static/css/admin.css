@@ -307,6 +307,10 @@ body.admin-modal-open {
 	display: none;
 }
 
+[hidden] {
+	display: none !important;
+}
+
 .admin-section__header,
 .admin-actions,
 .admin-section__actions,
@@ -396,6 +400,38 @@ body.admin-modal-open {
 	gap: 12px;
 }
 
+.admin-metrics-tabs {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	padding-bottom: 4px;
+}
+
+.admin-metrics-tab {
+	padding: 10px 14px;
+	border: 1px solid var(--admin-border);
+	border-radius: 10px;
+	background: var(--admin-surface-muted);
+	color: var(--admin-text);
+	font-size: 14px;
+	font-weight: 700;
+	cursor: pointer;
+	transition: border-color 0.18s ease, background-color 0.18s ease,
+		box-shadow 0.18s ease;
+}
+
+.admin-metrics-tab.is-active {
+	border-color: rgba(45, 45, 45, 0.34);
+	background: rgba(45, 45, 45, 0.08);
+	box-shadow: inset 0 0 0 1px rgba(45, 45, 45, 0.08);
+}
+
+.admin-metrics-panel {
+	display: grid;
+	gap: 18px;
+	padding-top: 6px;
+}
+
 .admin-metric-card {
 	display: grid;
 	gap: 10px;
@@ -417,6 +453,62 @@ body.admin-modal-open {
 	line-height: 1;
 	font-weight: 800;
 	color: var(--admin-text);
+}
+
+.admin-metrics-days {
+	display: grid;
+	grid-auto-flow: column;
+	grid-auto-columns: 104px;
+	align-items: end;
+	gap: 12px;
+	overflow-x: auto;
+	overflow-y: hidden;
+	padding-bottom: 8px;
+	scroll-snap-type: x proximity;
+	scrollbar-width: thin;
+}
+
+.admin-metric-day {
+	display: grid;
+	grid-template-rows: auto 180px auto;
+	gap: 10px;
+	padding: 14px 10px 12px;
+	border: 1px solid var(--admin-border);
+	border-radius: 12px;
+	background: var(--admin-surface-muted);
+	scroll-snap-align: start;
+}
+
+.admin-metric-day__label {
+	font-size: 12px;
+	font-weight: 700;
+	color: var(--admin-text-muted);
+	text-align: center;
+}
+
+.admin-metric-day__value {
+	font-size: 14px;
+	font-weight: 800;
+	color: var(--admin-text);
+	text-align: center;
+}
+
+.admin-metric-day__track {
+	position: relative;
+	height: 100%;
+	border-radius: 12px;
+	background: rgba(148, 163, 184, 0.18);
+	overflow: hidden;
+}
+
+.admin-metric-day__bar {
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	border-radius: 12px 12px 0 0;
+	background: linear-gradient(180deg, #6c737f, #2d2d2d);
+	transition: height 0.22s ease;
 }
 
 .admin-vacancy-card {
@@ -1290,6 +1382,10 @@ body.admin-modal-open {
 
 	.admin-metrics-grid {
 		grid-template-columns: 1fr;
+	}
+
+	.admin-metrics-days {
+		grid-auto-columns: 92px;
 	}
 }
 

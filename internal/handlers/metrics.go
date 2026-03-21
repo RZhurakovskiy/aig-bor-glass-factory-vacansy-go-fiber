@@ -38,8 +38,15 @@ type vacancyMetricsResponse struct {
 	TotalViews   int64                          `json:"totalViews"`
 	TodayViews   int64                          `json:"todayViews"`
 	UniqueIPs    int64                          `json:"uniqueIps"`
+	DailyViews   []vacancyDailyViewsResponse    `json:"dailyViews"`
 	Vacancies    []vacancyMetricSummaryResponse `json:"vacancies"`
 	RecentEvents []vacancyMetricEventResponse   `json:"recentEvents"`
+}
+
+type vacancyDailyViewsResponse struct {
+	Date       string `json:"date"`
+	Label      string `json:"label"`
+	ViewsCount int64  `json:"viewsCount"`
 }
 
 type vacancyMetricSummaryRow struct {
@@ -59,6 +66,11 @@ type vacancyMetricEventRow struct {
 	Referrer  string
 	PagePath  string
 	ViewedAt  time.Time
+}
+
+type vacancyDailyViewsRow struct {
+	ViewDate   string
+	ViewsCount int64
 }
 
 func (h *Handler) TrackVacancyView(c *fiber.Ctx) error {
@@ -111,6 +123,18 @@ func (h *Handler) GetVacancyMetrics(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "не удалось получить метрики"})
 	}
 
+	startDate := startOfDay.AddDate(0, 0, -13)
+
+	var dailyRows []vacancyDailyViewsRow
+	if err := h.db.Table("vacancy_views").
+		Select("DATE(viewed_at) AS view_date, COUNT(id) AS views_count").
+		Where("viewed_at >= ?", startDate).
+		Group("DATE(viewed_at)").
+		Order("view_date asc").
+		Scan(&dailyRows).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "не удалось получить метрики"})
+	}
+
 	var summaryRows []vacancyMetricSummaryRow
 	if err := h.db.Table("vacancy_views").
 		Select("vacancy_views.vacancy_id, vacancies.title, COUNT(vacancy_views.id) AS views_count, MAX(vacancy_views.viewed_at) AS last_viewed_at, vacancies.active").
@@ -135,6 +159,7 @@ func (h *Handler) GetVacancyMetrics(c *fiber.Ctx) error {
 		TotalViews:   totalViews,
 		TodayViews:   todayViews,
 		UniqueIPs:    uniqueIPs,
+		DailyViews:   buildDailyViewsResponse(startDate, dailyRows),
 		Vacancies:    make([]vacancyMetricSummaryResponse, 0, len(summaryRows)),
 		RecentEvents: make([]vacancyMetricEventResponse, 0, len(eventRows)),
 	}
@@ -163,6 +188,26 @@ func (h *Handler) GetVacancyMetrics(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(response)
+}
+
+func buildDailyViewsResponse(startDate time.Time, rows []vacancyDailyViewsRow) []vacancyDailyViewsResponse {
+	viewsByDate := make(map[string]int64, len(rows))
+	for _, row := range rows {
+		viewsByDate[row.ViewDate] = row.ViewsCount
+	}
+
+	daily := make([]vacancyDailyViewsResponse, 0, 14)
+	for index := 0; index < 14; index++ {
+		current := startDate.AddDate(0, 0, index)
+		dateKey := current.Format("2006-01-02")
+		daily = append(daily, vacancyDailyViewsResponse{
+			Date:       dateKey,
+			Label:      current.Format("02.01"),
+			ViewsCount: viewsByDate[dateKey],
+		})
+	}
+
+	return daily
 }
 
 func formatOptionalTime(value time.Time) string {

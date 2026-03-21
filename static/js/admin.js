@@ -21,8 +21,13 @@ const elements = {
 	vacanciesEmpty: document.getElementById('vacanciesEmpty'),
 	usersList: document.getElementById('usersList'),
 	usersEmpty: document.getElementById('usersEmpty'),
+	metricsTabs: document.getElementById('metricsTabs'),
+	metricsTabButtons: Array.from(document.querySelectorAll('[data-metrics-tab]')),
+	metricsPanels: Array.from(document.querySelectorAll('[data-metrics-panel]')),
 	metricsVacanciesList: document.getElementById('metricsVacanciesList'),
 	metricsVacanciesEmpty: document.getElementById('metricsVacanciesEmpty'),
+	metricsDailyList: document.getElementById('metricsDailyList'),
+	metricsDailyEmpty: document.getElementById('metricsDailyEmpty'),
 	metricsEventsList: document.getElementById('metricsEventsList'),
 	metricsEventsEmpty: document.getElementById('metricsEventsEmpty'),
 	metricTotalViews: document.getElementById('metricTotalViews'),
@@ -75,6 +80,7 @@ const state = {
 	infoPanelOpen: false,
 	ymapsReady: null,
 	themeMode: document.documentElement.dataset.themeMode || 'system',
+	activeMetricsTab: 'vacancies',
 	selectedVacancyId: null,
 	selectedUserId: null,
 	pendingDeleteVacancyId: null,
@@ -191,6 +197,10 @@ function bindEvents() {
 		elements.usersList.addEventListener('click', handleUserListClick)
 	}
 
+	if (isMetricsPage() && elements.metricsTabs) {
+		elements.metricsTabs.addEventListener('click', handleMetricsTabClick)
+	}
+
 	document.addEventListener('click', handleDocumentClick)
 	document.addEventListener('keydown', handleDocumentKeydown)
 }
@@ -207,6 +217,10 @@ function initAdminPage() {
 			link.dataset.adminPageLink === state.currentPage ? 'page' : 'false'
 		)
 	})
+
+	if (isMetricsPage()) {
+		syncMetricsTabsUI()
+	}
 }
 
 function getCurrentAdminPage() {
@@ -231,6 +245,26 @@ function isUsersPage() {
 
 function isMetricsPage() {
 	return state.currentPage === 'metrics'
+}
+
+function handleMetricsTabClick(event) {
+	const button = event.target.closest('[data-metrics-tab]')
+	if (!button) return
+
+	state.activeMetricsTab = button.dataset.metricsTab || 'vacancies'
+	syncMetricsTabsUI()
+}
+
+function syncMetricsTabsUI() {
+	elements.metricsTabButtons.forEach(button => {
+		const isActive = button.dataset.metricsTab === state.activeMetricsTab
+		button.classList.toggle('is-active', isActive)
+		button.setAttribute('aria-selected', isActive ? 'true' : 'false')
+	})
+
+	elements.metricsPanels.forEach(panel => {
+		panel.hidden = panel.dataset.metricsPanel !== state.activeMetricsTab
+	})
 }
 
 async function refreshContacts() {
@@ -634,6 +668,7 @@ function renderMetrics() {
 		totalViews: 0,
 		todayViews: 0,
 		uniqueIps: 0,
+		dailyViews: [],
 		vacancies: [],
 		recentEvents: [],
 	}
@@ -643,8 +678,10 @@ function renderMetrics() {
 	elements.metricUniqueIps.textContent = formatNumber(metrics.uniqueIps)
 
 	elements.metricsVacanciesList.innerHTML = ''
+	elements.metricsDailyList.innerHTML = ''
 	elements.metricsEventsList.innerHTML = ''
 	elements.metricsVacanciesEmpty.hidden = metrics.vacancies.length > 0
+	elements.metricsDailyEmpty.hidden = !metrics.dailyViews.every(item => Number(item.viewsCount) === 0)
 	elements.metricsEventsEmpty.hidden = metrics.recentEvents.length > 0
 
 	if (metrics.vacancies.length) {
@@ -671,6 +708,35 @@ function renderMetrics() {
 		})
 
 		elements.metricsVacanciesList.appendChild(vacanciesFragment)
+	}
+
+	const maxDailyViews = metrics.dailyViews.reduce(
+		(max, item) => Math.max(max, Number(item.viewsCount) || 0),
+		0
+	)
+
+	if (metrics.dailyViews.length) {
+		const dailyFragment = document.createDocumentFragment()
+
+		;[...metrics.dailyViews].reverse().forEach(item => {
+			const viewsCount = Number(item.viewsCount) || 0
+			const height =
+				maxDailyViews > 0
+					? Math.max((viewsCount / maxDailyViews) * 100, viewsCount > 0 ? 10 : 0)
+					: 0
+			const column = document.createElement('article')
+			column.className = 'admin-metric-day'
+			column.innerHTML = `
+				<div class="admin-metric-day__value">${escapeHtml(formatNumber(viewsCount))}</div>
+				<div class="admin-metric-day__track">
+					<div class="admin-metric-day__bar" style="height: ${height}%;"></div>
+				</div>
+				<div class="admin-metric-day__label">${escapeHtml(item.label)}</div>
+			`
+			dailyFragment.appendChild(column)
+		})
+
+		elements.metricsDailyList.appendChild(dailyFragment)
 	}
 
 	if (metrics.recentEvents.length) {
@@ -1634,6 +1700,8 @@ function hasMetricsUI() {
 	return Boolean(
 		elements.metricsVacanciesList &&
 			elements.metricsVacanciesEmpty &&
+			elements.metricsDailyList &&
+			elements.metricsDailyEmpty &&
 			elements.metricsEventsList &&
 			elements.metricsEventsEmpty &&
 			elements.metricTotalViews &&
