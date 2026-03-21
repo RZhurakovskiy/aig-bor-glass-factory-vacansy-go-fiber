@@ -318,7 +318,6 @@ body {
 	font-weight: 400;
 	font-size: clamp(14px, 2vw, 22px);
 	color: #e8e8e8;
-	margin-left: 20px;
 	margin-bottom: 50px;
 }
 
@@ -330,13 +329,13 @@ body {
 	position: relative;
 	overflow: hidden;
 	font-weight: 600;
-	font-size: clamp(14px, 1.2vw, 18px);
-	letter-spacing: 0.02em;
+	font-size: clamp(13px, 1vw, 16px);
+	letter-spacing: 0.015em;
 	text-transform: uppercase;
 	color: #ffffff;
 	border-radius: 0;
-	min-width: clamp(160px, 14vw, 210px);
-	padding: clamp(12px, 1.1vw, 15px) clamp(18px, 2vw, 28px);
+	min-width: clamp(138px, 11vw, 176px);
+	padding: clamp(10px, 0.9vw, 12px) clamp(16px, 1.4vw, 22px);
 	border: 1px solid transparent;
 	transition:
 		background-color 0.2s ease,
@@ -347,8 +346,8 @@ body {
 
 .header-content__button-vacancy {
 	background-color: #ec0000;
-	margin-right: 30px;
-	box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+	margin-right: 18px;
+	box-shadow: 0 10px 18px rgba(0, 0, 0, 0.16);
 }
 
 .header-content__button-about {
@@ -436,10 +435,17 @@ body {
 	background-position: center center;
 	background-size: cover;
 	background-repeat: no-repeat;
+	background-attachment: scroll;
 	height: 100vh;
 	position: relative;
 	border-radius: 0 0 25px 25px;
 	overflow: hidden;
+}
+
+@media (min-width: 821px) {
+	.header {
+		background-attachment: fixed;
+	}
 }
 
 .header-shape {
@@ -1876,23 +1882,6 @@ img {
 .header-content__button-vacancy:focus-visible {
 	outline: 2px solid rgba(255, 255, 255, 0.8);
 	outline-offset: 3px;
-}
-
-/* Social package cards hover */
-.socialpackage-card {
-	transition: transform 0.25s ease, box-shadow 0.25s ease;
-}
-.socialpackage-card:hover,
-.socialpackage-card:focus-within {
-	transform: translateY(-6px);
-	box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
-}
-.socialpackage-card__icon img {
-	transition: transform 0.25s ease;
-}
-.socialpackage-card:hover .socialpackage-card__icon img,
-.socialpackage-card:focus-within .socialpackage-card__icon img {
-	transform: scale(1.05);
 }
 
 /* Crisper raster rendering for icons */
