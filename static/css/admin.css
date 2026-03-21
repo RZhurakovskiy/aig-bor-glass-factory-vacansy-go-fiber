@@ -9,8 +9,11 @@
 	--admin-accent: #2d2d2d;
 	--admin-accent-soft: rgba(45, 45, 45, 0.16);
 	--admin-topbar-border: #2d2d2d;
-	--admin-topbar-bg:
-		linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0) 46%),
+	--admin-topbar-bg: linear-gradient(
+			135deg,
+			rgba(255, 255, 255, 0.08) 0%,
+			rgba(255, 255, 255, 0) 46%
+		),
 		#2d2d2d;
 	--admin-topbar-title: #ffffff;
 	--admin-topbar-muted: rgba(255, 255, 255, 0.72);
@@ -19,19 +22,21 @@
 	--admin-shadow: 0 18px 40px rgba(15, 23, 42, 0.06);
 	--admin-card-shadow: 0 8px 18px rgba(15, 23, 42, 0.03);
 	--admin-overlay: rgba(15, 23, 42, 0.38);
-	--admin-map-bg:
-		linear-gradient(180deg, rgba(45, 45, 45, 0.03) 0%, rgba(45, 45, 45, 0.01) 100%),
+	--admin-map-bg: linear-gradient(
+			180deg,
+			rgba(45, 45, 45, 0.03) 0%,
+			rgba(45, 45, 45, 0.01) 100%
+		),
 		#ffffff;
 	--admin-toggle-off: #d0d5dd;
 	--admin-count-bg: rgba(22, 22, 22, 0.08);
 	--admin-count-bg-hover: rgba(22, 22, 22, 0.12);
 	--admin-radius: 18px;
-	--admin-font:
-		-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display',
-		'Helvetica Neue', Arial, sans-serif;
+	--admin-font: -apple-system, BlinkMacSystemFont, "SF Pro Text",
+		"SF Pro Display", "Helvetica Neue", Arial, sans-serif;
 }
 
-:root[data-theme='dark'] {
+:root[data-theme="dark"] {
 	--admin-bg: #0f1722;
 	--admin-surface: #141c28;
 	--admin-surface-muted: #182230;
@@ -42,8 +47,11 @@
 	--admin-accent: #f3f4f6;
 	--admin-accent-soft: rgba(243, 244, 246, 0.18);
 	--admin-topbar-border: #3a4558;
-	--admin-topbar-bg:
-		linear-gradient(135deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0) 46%),
+	--admin-topbar-bg: linear-gradient(
+			135deg,
+			rgba(255, 255, 255, 0.06) 0%,
+			rgba(255, 255, 255, 0) 46%
+		),
 		#111827;
 	--admin-topbar-title: #ffffff;
 	--admin-topbar-muted: rgba(255, 255, 255, 0.72);
@@ -52,8 +60,11 @@
 	--admin-shadow: 0 18px 42px rgba(0, 0, 0, 0.24);
 	--admin-card-shadow: 0 8px 18px rgba(0, 0, 0, 0.14);
 	--admin-overlay: rgba(2, 6, 23, 0.62);
-	--admin-map-bg:
-		linear-gradient(180deg, rgba(255, 255, 255, 0.02) 0%, rgba(255, 255, 255, 0.01) 100%),
+	--admin-map-bg: linear-gradient(
+			180deg,
+			rgba(255, 255, 255, 0.02) 0%,
+			rgba(255, 255, 255, 0.01) 100%
+		),
 		#0f1722;
 	--admin-toggle-off: #475467;
 	--admin-count-bg: rgba(255, 255, 255, 0.12);
@@ -75,14 +86,20 @@ body.admin-body {
 	margin: 0;
 	font-family: var(--admin-font);
 	color: var(--admin-text);
-	background:
-		radial-gradient(circle at top left, rgba(45, 45, 45, 0.06), transparent 28%),
+	background: radial-gradient(
+			circle at top left,
+			rgba(45, 45, 45, 0.06),
+			transparent 28%
+		),
 		linear-gradient(180deg, #f8fbff 0%, var(--admin-bg) 100%);
 }
 
-:root[data-theme='dark'] body.admin-body {
-	background:
-		radial-gradient(circle at top left, rgba(255, 255, 255, 0.05), transparent 24%),
+:root[data-theme="dark"] body.admin-body {
+	background: radial-gradient(
+			circle at top left,
+			rgba(255, 255, 255, 0.05),
+			transparent 24%
+		),
 		linear-gradient(180deg, #111827 0%, var(--admin-bg) 100%);
 }
 
@@ -91,7 +108,7 @@ body.admin-modal-open {
 }
 
 .admin-main {
-	padding: 40px 20px;
+	padding: 20px;
 }
 
 .admin-shell {
@@ -207,9 +224,7 @@ body.admin-modal-open {
 	background: transparent;
 	color: var(--admin-text);
 	text-decoration: none;
-	transition:
-		border-color 0.18s ease,
-		background-color 0.18s ease,
+	transition: border-color 0.18s ease, background-color 0.18s ease,
 		color 0.18s ease;
 }
 
@@ -224,7 +239,7 @@ body.admin-modal-open {
 	color: #ffffff;
 }
 
-:root[data-theme='dark'] .admin-sidebar__link.is-active {
+:root[data-theme="dark"] .admin-sidebar__link.is-active {
 	border-color: #6d28d9;
 	background: #6d28d9;
 	color: #ffffff;
@@ -244,7 +259,9 @@ body.admin-modal-open {
 	opacity: 1;
 }
 
-:root[data-theme='dark'] .admin-sidebar__link.is-active .admin-sidebar__link-marker {
+:root[data-theme="dark"]
+	.admin-sidebar__link.is-active
+	.admin-sidebar__link-marker {
 	background: #ffffff;
 }
 
@@ -426,7 +443,7 @@ body.admin-modal-open {
 }
 
 .admin-publish-toggle__control::after {
-	content: '';
+	content: "";
 	position: absolute;
 	top: 3px;
 	left: 3px;
@@ -636,9 +653,7 @@ body.admin-modal-open {
 	font-weight: 700;
 	color: var(--admin-text);
 	cursor: pointer;
-	transition:
-		border-color 0.18s ease,
-		background-color 0.18s ease,
+	transition: border-color 0.18s ease, background-color 0.18s ease,
 		color 0.18s ease;
 }
 
@@ -688,7 +703,7 @@ body.admin-modal-open {
 	color: #fff;
 }
 
-:root[data-theme='dark'] .admin-btn_primary:hover {
+:root[data-theme="dark"] .admin-btn_primary:hover {
 	border-color: #ffffff;
 	background: #ffffff;
 	color: #111827;
@@ -902,9 +917,8 @@ body.admin-modal-open {
 }
 
 .admin-info-panel__value_code {
-	font-family:
-		ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, 'Liberation Mono',
-		monospace;
+	font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas,
+		"Liberation Mono", monospace;
 	font-size: 14px;
 }
 
@@ -967,7 +981,7 @@ body.admin-modal-open {
 }
 
 .admin-toast::after {
-	content: '';
+	content: "";
 	position: absolute;
 	left: 0;
 	right: 0;
@@ -1117,7 +1131,7 @@ body.admin-modal-open {
 
 @media (max-width: 760px) {
 	.admin-main {
-		padding: 24px 16px;
+		padding: 16px;
 	}
 
 	.admin-panel,
