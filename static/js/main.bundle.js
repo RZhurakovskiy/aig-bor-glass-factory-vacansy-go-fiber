@@ -48,7 +48,7 @@ async function renderVacancies(onLoaded) {
 
 		if (!vacancies.length) {
 			container.innerHTML =
-				'<div class="vacancy-card__item"><article class="vacancy-card active"><div class="vacancy-card__description"><div class="vacancy-card__description-item"><h4>Сейчас вакансии обновляются</h4><p>Пожалуйста, попробуйте открыть страницу позже или свяжитесь с нами по контактам ниже.</p></div></div></article></div>'
+				'<div class="vacancy-empty-state"><div class="vacancy-empty-state__eyebrow">Сейчас набор не открыт</div><h3 class="vacancy-empty-state__title">Опубликованных вакансий пока нет</h3><p class="vacancy-empty-state__text">Следите за обновлениями или свяжитесь с нами по контактам ниже, если хотите уточнить информацию о наборе.</p></div>'
 			return
 		}
 
@@ -114,7 +114,7 @@ async function renderVacancies(onLoaded) {
 	} catch (error) {
 		console.error(error)
 		container.innerHTML =
-			'<div class="vacancy-card__item"><article class="vacancy-card active"><div class="vacancy-card__description"><div class="vacancy-card__description-item"><h4>Не удалось загрузить вакансии</h4><p>Проверьте доступность сервера и обновите страницу.</p></div></div></article></div>'
+			'<div class="vacancy-empty-state vacancy-empty-state_error"><div class="vacancy-empty-state__eyebrow">Ошибка загрузки</div><h3 class="vacancy-empty-state__title">Не удалось загрузить вакансии</h3><p class="vacancy-empty-state__text">Проверьте доступность сервера и обновите страницу.</p></div>'
 		if (typeof onLoaded === 'function') onLoaded()
 	}
 }

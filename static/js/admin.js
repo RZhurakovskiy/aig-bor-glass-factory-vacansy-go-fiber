@@ -8,6 +8,7 @@ const elements = {
 	vacanciesList: document.getElementById('vacanciesList'),
 	vacanciesEmpty: document.getElementById('vacanciesEmpty'),
 	openTrashButton: document.getElementById('openTrashButton'),
+	openTrashCount: document.getElementById('openTrashCount'),
 	trashVacanciesList: document.getElementById('trashVacanciesList'),
 	trashEmpty: document.getElementById('trashEmpty'),
 	emptyTrashButton: document.getElementById('emptyTrashButton'),
@@ -62,6 +63,7 @@ async function bootstrap() {
 
 	if (hasVacancyUI()) {
 		tasks.push(refreshVacancies())
+		tasks.push(refreshTrashVacancies())
 	}
 
 	await Promise.all(tasks)
@@ -343,6 +345,7 @@ function renderVacancies() {
 function renderTrashVacancies() {
 	if (!hasVacancyUI()) return
 
+	updateTrashButtonCount()
 	elements.trashVacanciesList.innerHTML = ''
 	elements.trashEmpty.hidden = state.trashVacancies.length > 0
 	elements.emptyTrashButton.disabled = state.trashVacancies.length === 0
@@ -381,6 +384,14 @@ function renderTrashVacancies() {
 	})
 
 	elements.trashVacanciesList.appendChild(fragment)
+}
+
+function updateTrashButtonCount() {
+	if (!elements.openTrashCount) return
+
+	const count = state.trashVacancies.length
+	elements.openTrashCount.textContent = String(count)
+	elements.openTrashCount.hidden = count === 0
 }
 
 function handleVacancyListClick(event) {

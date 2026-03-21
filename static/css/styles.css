@@ -1596,6 +1596,53 @@ img {
 	padding-bottom: 20px;
 }
 
+.vacancy-empty-state {
+	display: grid;
+	justify-items: start;
+	gap: 18px;
+	padding: 42px 46px;
+	border: 1px solid rgba(22, 22, 22, 0.1);
+	border-radius: 28px;
+	background:
+		linear-gradient(135deg, rgba(22, 22, 22, 0.03) 0%, rgba(22, 22, 22, 0) 46%),
+		#f6f6f6;
+	box-shadow: 0 14px 32px rgba(0, 0, 0, 0.04);
+}
+
+.vacancy-empty-state__eyebrow {
+	display: inline-flex;
+	align-items: center;
+	min-height: 34px;
+	padding: 0 14px;
+	border-radius: 999px;
+	background: rgba(22, 22, 22, 0.08);
+	font-size: 12px;
+	font-weight: 700;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: #161616;
+}
+
+.vacancy-empty-state__title {
+	margin: 0;
+	font-size: clamp(28px, 3vw, 40px);
+	line-height: 1.05;
+	color: #161616;
+}
+
+.vacancy-empty-state__text {
+	max-width: 720px;
+	margin: 0;
+	font-size: clamp(16px, 1.6vw, 18px);
+	line-height: 1.7;
+	color: #3b3b3b;
+}
+
+.vacancy-empty-state_error .vacancy-empty-state__eyebrow {
+	background: rgba(236, 0, 0, 0.12);
+	color: #b00000;
+}
+
 @media (max-width: 1300px) {
 	.vacancy__title {
 		font-size: 38px;
@@ -1649,6 +1696,10 @@ img {
 @media (max-width: 540px) {
 	.vacancy {
 		padding: 18px;
+	}
+	.vacancy-empty-state {
+		padding: 28px 24px;
+		border-radius: 22px;
 	}
 	.vacancy-card {
 		padding: 35px;
