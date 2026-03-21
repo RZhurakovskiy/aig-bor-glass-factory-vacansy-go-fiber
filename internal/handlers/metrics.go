@@ -44,8 +44,15 @@ type vacancyMetricsResponse struct {
 }
 
 type vacancyDailyViewsResponse struct {
-	Date       string `json:"date"`
-	Label      string `json:"label"`
+	Date       string                        `json:"date"`
+	Label      string                        `json:"label"`
+	ViewsCount int64                         `json:"viewsCount"`
+	Segments   []vacancyDailySegmentResponse `json:"segments"`
+}
+
+type vacancyDailySegmentResponse struct {
+	VacancyID  uint   `json:"vacancyId"`
+	Title      string `json:"title"`
 	ViewsCount int64  `json:"viewsCount"`
 }
 
@@ -70,6 +77,8 @@ type vacancyMetricEventRow struct {
 
 type vacancyDailyViewsRow struct {
 	ViewDate   string
+	VacancyID  uint
+	Title      string
 	ViewsCount int64
 }
 
@@ -127,10 +136,11 @@ func (h *Handler) GetVacancyMetrics(c *fiber.Ctx) error {
 
 	var dailyRows []vacancyDailyViewsRow
 	if err := h.db.Table("vacancy_views").
-		Select("DATE(viewed_at) AS view_date, COUNT(id) AS views_count").
+		Select("DATE(vacancy_views.viewed_at) AS view_date, vacancy_views.vacancy_id, vacancies.title, COUNT(vacancy_views.id) AS views_count").
+		Joins("JOIN vacancies ON vacancies.id = vacancy_views.vacancy_id").
 		Where("viewed_at >= ?", startDate).
-		Group("DATE(viewed_at)").
-		Order("view_date asc").
+		Group("DATE(vacancy_views.viewed_at), vacancy_views.vacancy_id, vacancies.title").
+		Order("view_date asc, views_count desc, vacancies.title asc").
 		Scan(&dailyRows).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "не удалось получить метрики"})
 	}
@@ -192,8 +202,14 @@ func (h *Handler) GetVacancyMetrics(c *fiber.Ctx) error {
 
 func buildDailyViewsResponse(startDate time.Time, rows []vacancyDailyViewsRow) []vacancyDailyViewsResponse {
 	viewsByDate := make(map[string]int64, len(rows))
+	segmentsByDate := make(map[string][]vacancyDailySegmentResponse, len(rows))
 	for _, row := range rows {
-		viewsByDate[row.ViewDate] = row.ViewsCount
+		viewsByDate[row.ViewDate] += row.ViewsCount
+		segmentsByDate[row.ViewDate] = append(segmentsByDate[row.ViewDate], vacancyDailySegmentResponse{
+			VacancyID:  row.VacancyID,
+			Title:      row.Title,
+			ViewsCount: row.ViewsCount,
+		})
 	}
 
 	daily := make([]vacancyDailyViewsResponse, 0, 14)
@@ -204,6 +220,7 @@ func buildDailyViewsResponse(startDate time.Time, rows []vacancyDailyViewsRow) [
 			Date:       dateKey,
 			Label:      current.Format("02.01"),
 			ViewsCount: viewsByDate[dateKey],
+			Segments:   segmentsByDate[dateKey],
 		})
 	}
 

@@ -222,9 +222,9 @@ body.admin-modal-open {
 
 .admin-sidebar__link {
 	display: grid;
-	grid-template-columns: 10px minmax(0, 1fr);
+	grid-template-columns: minmax(0, 1fr);
 	align-items: start;
-	gap: 12px;
+	gap: 0;
 	padding: 12px 14px;
 	border: 1px solid transparent;
 	border-radius: 12px;
@@ -253,23 +253,7 @@ body.admin-modal-open {
 }
 
 .admin-sidebar__link-marker {
-	width: 8px;
-	height: 8px;
-	margin-top: 7px;
-	border-radius: 999px;
-	background: var(--admin-border-strong);
-	opacity: 0.55;
-}
-
-.admin-sidebar__link.is-active .admin-sidebar__link-marker {
-	background: #ffffff;
-	opacity: 1;
-}
-
-:root[data-theme="dark"]
-	.admin-sidebar__link.is-active
-	.admin-sidebar__link-marker {
-	background: #ffffff;
+	display: none;
 }
 
 .admin-sidebar__link.is-active .admin-sidebar__link-note {
@@ -468,6 +452,33 @@ body.admin-modal-open {
 	scrollbar-width: thin;
 }
 
+.admin-metrics-legend {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px 14px;
+	padding-bottom: 6px;
+}
+
+.admin-metrics-legend__item {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	min-width: 0;
+}
+
+.admin-metrics-legend__swatch {
+	width: 10px;
+	height: 10px;
+	border-radius: 999px;
+	flex: 0 0 auto;
+}
+
+.admin-metrics-legend__text {
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--admin-text-muted);
+}
+
 .admin-metric-day {
 	display: grid;
 	grid-template-rows: auto 180px auto;
@@ -506,9 +517,15 @@ body.admin-modal-open {
 	left: 0;
 	right: 0;
 	bottom: 0;
+	display: flex;
+	flex-direction: column-reverse;
 	border-radius: 12px 12px 0 0;
-	background: linear-gradient(180deg, #6c737f, #2d2d2d);
 	transition: height 0.22s ease;
+	overflow: hidden;
+}
+
+.admin-metric-day__segment {
+	width: 100%;
 }
 
 .admin-vacancy-card {

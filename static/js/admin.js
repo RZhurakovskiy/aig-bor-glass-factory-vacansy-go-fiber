@@ -28,6 +28,7 @@ const elements = {
 	metricsVacanciesEmpty: document.getElementById('metricsVacanciesEmpty'),
 	metricsDailyList: document.getElementById('metricsDailyList'),
 	metricsDailyEmpty: document.getElementById('metricsDailyEmpty'),
+	metricsDailyLegend: document.getElementById('metricsDailyLegend'),
 	metricsEventsList: document.getElementById('metricsEventsList'),
 	metricsEventsEmpty: document.getElementById('metricsEventsEmpty'),
 	metricTotalViews: document.getElementById('metricTotalViews'),
@@ -679,6 +680,9 @@ function renderMetrics() {
 
 	elements.metricsVacanciesList.innerHTML = ''
 	elements.metricsDailyList.innerHTML = ''
+	if (elements.metricsDailyLegend) {
+		elements.metricsDailyLegend.innerHTML = ''
+	}
 	elements.metricsEventsList.innerHTML = ''
 	elements.metricsVacanciesEmpty.hidden = metrics.vacancies.length > 0
 	elements.metricsDailyEmpty.hidden = !metrics.dailyViews.every(item => Number(item.viewsCount) === 0)
@@ -715,21 +719,59 @@ function renderMetrics() {
 		0
 	)
 
+	const legendItems = []
+	const seenLegendKeys = new Set()
+	metrics.dailyViews.forEach(item => {
+		const segments = Array.isArray(item.segments) ? item.segments : []
+		segments.forEach(segment => {
+			const key = String(segment.vacancyId)
+			if (seenLegendKeys.has(key)) return
+			seenLegendKeys.add(key)
+			legendItems.push(segment)
+		})
+	})
+
+	if (elements.metricsDailyLegend && legendItems.length) {
+		const legendFragment = document.createDocumentFragment()
+
+		legendItems.forEach(segment => {
+			const legend = document.createElement('div')
+			legend.className = 'admin-metrics-legend__item'
+			legend.innerHTML = `
+				<span class="admin-metrics-legend__swatch" style="background: ${getMetricsSegmentColor(segment.vacancyId)};"></span>
+				<span class="admin-metrics-legend__text">${escapeHtml(segment.title)}</span>
+			`
+			legendFragment.appendChild(legend)
+		})
+
+		elements.metricsDailyLegend.appendChild(legendFragment)
+	}
+
 	if (metrics.dailyViews.length) {
 		const dailyFragment = document.createDocumentFragment()
 
 		;[...metrics.dailyViews].reverse().forEach(item => {
 			const viewsCount = Number(item.viewsCount) || 0
+			const segments = Array.isArray(item.segments) ? item.segments : []
 			const height =
 				maxDailyViews > 0
 					? Math.max((viewsCount / maxDailyViews) * 100, viewsCount > 0 ? 10 : 0)
 					: 0
 			const column = document.createElement('article')
 			column.className = 'admin-metric-day'
+			const segmentsMarkup = segments
+				.map(segment => {
+					const segmentHeight =
+						viewsCount > 0 ? (Number(segment.viewsCount) / viewsCount) * 100 : 0
+					const color = getMetricsSegmentColor(segment.vacancyId)
+					const title = `${segment.title}: ${formatNumber(segment.viewsCount)}`
+					return `<div class="admin-metric-day__segment" style="height: ${segmentHeight}%; background: ${color};" title="${escapeAttribute(title)}"></div>`
+				})
+				.join('')
 			column.innerHTML = `
 				<div class="admin-metric-day__value">${escapeHtml(formatNumber(viewsCount))}</div>
 				<div class="admin-metric-day__track">
-					<div class="admin-metric-day__bar" style="height: ${height}%;"></div>
+					<div class="admin-metric-day__bar" style="height: ${height}%;">${segmentsMarkup}</div>
 				</div>
 				<div class="admin-metric-day__label">${escapeHtml(item.label)}</div>
 			`
@@ -1815,6 +1857,22 @@ function trimUserAgent(value) {
 	if (normalized === '') return 'User-Agent не передан'
 	if (normalized.length <= 120) return normalized
 	return normalized.slice(0, 117) + '...'
+}
+
+function getMetricsSegmentColor(vacancyId) {
+	const palette = [
+		'#2d2d2d',
+		'#7c3aed',
+		'#0891b2',
+		'#f97316',
+		'#16a34a',
+		'#dc2626',
+		'#d4a017',
+		'#475569',
+	]
+
+	const index = Math.abs(Number(vacancyId) || 0) % palette.length
+	return palette[index]
 }
 
 function setListEditorItems(name, items) {
