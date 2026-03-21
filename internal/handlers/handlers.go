@@ -29,6 +29,7 @@ type Handler struct {
 
 type vacancyResponse struct {
 	ID               uint     `json:"id"`
+	SortOrder        int      `json:"sortOrder"`
 	Title            string   `json:"title"`
 	Schedule         string   `json:"schedule"`
 	ScheduleLines    []string `json:"scheduleLines"`
@@ -41,6 +42,21 @@ type vacancyResponse struct {
 	ConditionsList   []string `json:"conditionsList"`
 	Salary           string   `json:"salary"`
 	Active           bool     `json:"active"`
+}
+
+type vacancyPayload struct {
+	Title        string `json:"title"`
+	Schedule     string `json:"schedule"`
+	Summary      string `json:"summary"`
+	Duties       string `json:"duties"`
+	Requirements string `json:"requirements"`
+	Conditions   string `json:"conditions"`
+	Salary       string `json:"salary"`
+	Active       bool   `json:"active"`
+}
+
+type vacancyOrderPayload struct {
+	OrderedIDs []uint `json:"orderedIds"`
 }
 
 type contactPayload struct {
@@ -89,6 +105,9 @@ func (h *Handler) RequireAdmin(c *fiber.Ctx) error {
 }
 
 func (h *Handler) Login(c *fiber.Ctx) error {
+	expectsJSON := strings.HasPrefix(c.Get("Content-Type"), fiber.MIMEApplicationJSON) ||
+		strings.Contains(c.Get("Accept"), fiber.MIMEApplicationJSON)
+
 	password := strings.TrimSpace(c.FormValue("password"))
 	if password == "" {
 		var payload map[string]string
@@ -98,11 +117,17 @@ func (h *Handler) Login(c *fiber.Ctx) error {
 	}
 
 	if password != h.adminPassword {
+		if expectsJSON {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "неверный пароль"})
+		}
 		return c.Status(fiber.StatusUnauthorized).SendString("Неверный пароль")
 	}
 
 	token, err := h.createSessionToken()
 	if err != nil {
+		if expectsJSON {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "не удалось создать сессию"})
+		}
 		return c.Status(fiber.StatusInternalServerError).SendString("Не удалось создать сессию")
 	}
 
@@ -116,7 +141,7 @@ func (h *Handler) Login(c *fiber.Ctx) error {
 		SameSite: "Lax",
 	})
 
-	if strings.HasPrefix(c.Get("Content-Type"), fiber.MIMEApplicationJSON) {
+	if expectsJSON {
 		return c.JSON(fiber.Map{"ok": true})
 	}
 
@@ -138,7 +163,7 @@ func (h *Handler) Logout(c *fiber.Ctx) error {
 
 func (h *Handler) GetPublicVacancies(c *fiber.Ctx) error {
 	var vacancies []models.Vacancy
-	if err := h.db.Where("active = ?", true).Order("id asc").Find(&vacancies).Error; err != nil {
+	if err := h.db.Where("active = ?", true).Order("sort_order asc, id asc").Find(&vacancies).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "не удалось получить список вакансий"})
 	}
 
@@ -148,6 +173,154 @@ func (h *Handler) GetPublicVacancies(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(response)
+}
+
+func (h *Handler) GetAdminVacancies(c *fiber.Ctx) error {
+	var vacancies []models.Vacancy
+	if err := h.db.Order("sort_order asc, id asc").Find(&vacancies).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "не удалось получить список вакансий"})
+	}
+
+	response := make([]vacancyResponse, 0, len(vacancies))
+	for _, vacancy := range vacancies {
+		response = append(response, toVacancyResponse(vacancy))
+	}
+
+	return c.JSON(response)
+}
+
+func (h *Handler) CreateVacancy(c *fiber.Ctx) error {
+	var payload vacancyPayload
+	if err := c.BodyParser(&payload); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "некорректные данные вакансии"})
+	}
+
+	title := strings.TrimSpace(payload.Title)
+	if title == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "название вакансии обязательно"})
+	}
+
+	sortOrder, err := h.nextVacancySortOrder()
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "не удалось создать вакансию"})
+	}
+
+	vacancy := models.Vacancy{
+		SortOrder:    sortOrder,
+		Title:        title,
+		Schedule:     normalizeMultiline(payload.Schedule),
+		Summary:      strings.TrimSpace(payload.Summary),
+		Duties:       normalizeMultiline(payload.Duties),
+		Requirements: normalizeMultiline(payload.Requirements),
+		Conditions:   normalizeMultiline(payload.Conditions),
+		Salary:       strings.TrimSpace(payload.Salary),
+		Active:       payload.Active,
+	}
+
+	if err := h.db.Create(&vacancy).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "не удалось создать вакансию"})
+	}
+
+	return c.Status(fiber.StatusCreated).JSON(toVacancyResponse(vacancy))
+}
+
+func (h *Handler) UpdateVacancy(c *fiber.Ctx) error {
+	id, err := parseUintParam(c, "id")
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "некорректный идентификатор вакансии"})
+	}
+
+	var vacancy models.Vacancy
+	if err := h.db.First(&vacancy, id).Error; err != nil {
+		return respondDBError(c, err)
+	}
+
+	var payload vacancyPayload
+	if err := c.BodyParser(&payload); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "некорректные данные вакансии"})
+	}
+
+	title := strings.TrimSpace(payload.Title)
+	if title == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "название вакансии обязательно"})
+	}
+
+	vacancy.Title = title
+	vacancy.Schedule = normalizeMultiline(payload.Schedule)
+	vacancy.Summary = strings.TrimSpace(payload.Summary)
+	vacancy.Duties = normalizeMultiline(payload.Duties)
+	vacancy.Requirements = normalizeMultiline(payload.Requirements)
+	vacancy.Conditions = normalizeMultiline(payload.Conditions)
+	vacancy.Salary = strings.TrimSpace(payload.Salary)
+	vacancy.Active = payload.Active
+
+	if err := h.db.Save(&vacancy).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "не удалось сохранить вакансию"})
+	}
+
+	return c.JSON(toVacancyResponse(vacancy))
+}
+
+func (h *Handler) DeleteVacancy(c *fiber.Ctx) error {
+	id, err := parseUintParam(c, "id")
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "некорректный идентификатор вакансии"})
+	}
+
+	result := h.db.Delete(&models.Vacancy{}, id)
+	if result.Error != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "не удалось удалить вакансию"})
+	}
+	if result.RowsAffected == 0 {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "вакансия не найдена"})
+	}
+
+	return c.JSON(fiber.Map{"ok": true})
+}
+
+func (h *Handler) ReorderVacancies(c *fiber.Ctx) error {
+	var payload vacancyOrderPayload
+	if err := c.BodyParser(&payload); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "некорректный порядок вакансий"})
+	}
+
+	if len(payload.OrderedIDs) == 0 {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "список вакансий пуст"})
+	}
+
+	var count int64
+	if err := h.db.Model(&models.Vacancy{}).Count(&count).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "не удалось изменить порядок вакансий"})
+	}
+
+	if int64(len(payload.OrderedIDs)) != count {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "передан неполный список вакансий"})
+	}
+
+	seen := make(map[uint]struct{}, len(payload.OrderedIDs))
+	for _, id := range payload.OrderedIDs {
+		if id == 0 {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "некорректный идентификатор вакансии"})
+		}
+		if _, ok := seen[id]; ok {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "в порядке вакансий есть дубликаты"})
+		}
+		seen[id] = struct{}{}
+	}
+
+	err := h.db.Transaction(func(tx *gorm.DB) error {
+		for index, id := range payload.OrderedIDs {
+			if err := tx.Model(&models.Vacancy{}).Where("id = ?", id).Update("sort_order", index+1).Error; err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "не удалось изменить порядок вакансий"})
+	}
+
+	return h.GetAdminVacancies(c)
 }
 
 func (h *Handler) GetContacts(c *fiber.Ctx) error {
@@ -193,6 +366,7 @@ func (h *Handler) getContact() (models.Contact, error) {
 func toVacancyResponse(v models.Vacancy) vacancyResponse {
 	return vacancyResponse{
 		ID:               v.ID,
+		SortOrder:        v.SortOrder,
 		Title:            v.Title,
 		Schedule:         v.Schedule,
 		ScheduleLines:    models.SplitLines(v.Schedule),
@@ -222,6 +396,23 @@ func toContactResponse(contact models.Contact) contactResponse {
 
 func normalizeMultiline(value string) string {
 	return models.JoinLines(strings.Split(strings.ReplaceAll(value, "\r\n", "\n"), "\n"))
+}
+
+func parseUintParam(c *fiber.Ctx, name string) (uint, error) {
+	value, err := strconv.ParseUint(c.Params(name), 10, 64)
+	return uint(value), err
+}
+
+func (h *Handler) nextVacancySortOrder() (int, error) {
+	var vacancy models.Vacancy
+	err := h.db.Order("sort_order desc, id desc").First(&vacancy).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return 1, nil
+	}
+	if err != nil {
+		return 0, err
+	}
+	return vacancy.SortOrder + 1, nil
 }
 
 func respondDBError(c *fiber.Ctx, err error) error {

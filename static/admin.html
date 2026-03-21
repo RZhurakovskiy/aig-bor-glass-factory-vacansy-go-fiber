@@ -3,66 +3,193 @@
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>Панель администратора | Контакты</title>
+		<title>Панель администратора</title>
 		<link rel="stylesheet" href="./css/admin.css" />
 	</head>
 	<body class="admin-body">
 		<main class="admin-main">
-			<div class="admin-shell admin-shell_narrow">
+			<div class="admin-shell">
 				<section class="admin-panel">
 					<div class="admin-panel__header">
 						<div>
-							<h1 class="admin-panel__title">Контакты сайта</h1>
+							<h1 class="admin-panel__title">Панель администратора</h1>
+							<p class="admin-panel__subtitle">
+								Управление вакансиями и контактами сайта.
+							</p>
 						</div>
 						<button class="admin-btn admin-btn_ghost" id="logoutButton" type="button">
 							Выйти
 						</button>
 					</div>
 
-					<form class="admin-form" id="contactsForm">
-						<label class="admin-field">
-							<span class="admin-field__label">Телефоны</span>
-							<textarea
-								class="admin-input admin-textarea"
-								name="phones"
-								placeholder="Один телефон на строку"
-							></textarea>
-						</label>
+					<div class="admin-layout">
+						<section class="admin-section">
+							<div class="admin-section__header">
+								<div>
+									<h2 class="admin-section__title">Вакансии</h2>
+								</div>
+								<button
+									class="admin-btn admin-btn_primary"
+									id="createVacancyButton"
+									type="button"
+								>
+									Новая вакансия
+								</button>
+							</div>
 
-						<div class="admin-form__grid">
-							<label class="admin-field">
-								<span class="admin-field__label">E-mail</span>
-								<input class="admin-input" name="email" type="email" />
-							</label>
-							<label class="admin-field">
-								<span class="admin-field__label">Адрес</span>
-								<input class="admin-input" name="address" type="text" />
-							</label>
-						</div>
+							<div class="admin-vacancies-empty" id="vacanciesEmpty" hidden>
+								Сейчас вакансий нет. Добавьте первую запись через форму справа.
+							</div>
 
-						<div class="admin-form__grid">
-							<label class="admin-field">
-								<span class="admin-field__label">VK</span>
-								<input class="admin-input" name="vk" type="url" />
-							</label>
-							<label class="admin-field">
-								<span class="admin-field__label">Telegram</span>
-								<input class="admin-input" name="telegram" type="url" />
-							</label>
-						</div>
+							<div class="admin-vacancies-list" id="vacanciesList"></div>
+						</section>
 
-						<label class="admin-field">
-							<span class="admin-field__label">WhatsApp</span>
-							<input class="admin-input" name="whatsapp" type="url" />
-						</label>
+						<section class="admin-section">
+							<div class="admin-section__header">
+								<div>
+									<h2 class="admin-section__title">Редактор вакансии</h2>
+									<p class="admin-section__subtitle" id="vacancyFormTitle">
+										Создание новой вакансии
+									</p>
+								</div>
+							</div>
 
-						<div class="admin-actions">
-							<button class="admin-btn admin-btn_primary" id="saveButton" type="submit">
-								Сохранить контакты
-							</button>
-							<div class="admin-status-note" id="statusMessage" aria-live="polite"></div>
-						</div>
-					</form>
+							<form class="admin-form" id="vacancyForm" action="javascript:void(0)">
+								<input name="id" type="hidden" />
+
+								<label class="admin-field">
+									<span class="admin-field__label">Название</span>
+									<input class="admin-input" name="title" type="text" required />
+								</label>
+
+								<div class="admin-form__grid">
+									<label class="admin-field">
+										<span class="admin-field__label">Зарплата</span>
+										<input class="admin-input" name="salary" type="text" />
+									</label>
+									<label class="admin-field admin-field_checkbox">
+										<input class="admin-checkbox" name="active" type="checkbox" />
+										<span class="admin-field__label">Показывать на сайте</span>
+									</label>
+								</div>
+
+								<label class="admin-field">
+									<span class="admin-field__label">График / короткие условия</span>
+									<textarea
+										class="admin-input admin-textarea admin-textarea_compact"
+										name="schedule"
+										placeholder="Одна строка = один пункт"
+									></textarea>
+								</label>
+
+								<label class="admin-field">
+									<span class="admin-field__label">Краткое описание</span>
+									<textarea
+										class="admin-input admin-textarea admin-textarea_compact"
+										name="summary"
+									></textarea>
+								</label>
+
+								<label class="admin-field">
+									<span class="admin-field__label">Обязанности</span>
+									<textarea
+										class="admin-input admin-textarea"
+										name="duties"
+										placeholder="Одна строка = один пункт"
+									></textarea>
+								</label>
+
+								<label class="admin-field">
+									<span class="admin-field__label">Требования</span>
+									<textarea
+										class="admin-input admin-textarea"
+										name="requirements"
+										placeholder="Одна строка = один пункт"
+									></textarea>
+								</label>
+
+								<label class="admin-field">
+									<span class="admin-field__label">Условия</span>
+									<textarea
+										class="admin-input admin-textarea"
+										name="conditions"
+										placeholder="Одна строка = один пункт"
+									></textarea>
+								</label>
+
+								<div class="admin-actions">
+									<button
+										class="admin-btn admin-btn_primary"
+										id="saveVacancyButton"
+										type="button"
+									>
+										Сохранить вакансию
+									</button>
+									<button class="admin-btn" id="resetVacancyButton" type="button">
+										Очистить форму
+									</button>
+									<div
+										class="admin-status-note"
+										id="vacancyStatusMessage"
+										aria-live="polite"
+									></div>
+								</div>
+							</form>
+						</section>
+
+						<section class="admin-section admin-section_full">
+							<div class="admin-section__header">
+								<div>
+									<h2 class="admin-section__title">Контакты сайта</h2>
+								</div>
+							</div>
+
+							<form class="admin-form" id="contactsForm" action="javascript:void(0)">
+								<label class="admin-field">
+									<span class="admin-field__label">Телефоны</span>
+									<textarea
+										class="admin-input admin-textarea"
+										name="phones"
+										placeholder="Один телефон на строку"
+									></textarea>
+								</label>
+
+								<div class="admin-form__grid">
+									<label class="admin-field">
+										<span class="admin-field__label">E-mail</span>
+										<input class="admin-input" name="email" type="email" />
+									</label>
+									<label class="admin-field">
+										<span class="admin-field__label">Адрес</span>
+										<input class="admin-input" name="address" type="text" />
+									</label>
+								</div>
+
+								<div class="admin-form__grid">
+									<label class="admin-field">
+										<span class="admin-field__label">VK</span>
+										<input class="admin-input" name="vk" type="url" />
+									</label>
+									<label class="admin-field">
+										<span class="admin-field__label">Telegram</span>
+										<input class="admin-input" name="telegram" type="url" />
+									</label>
+								</div>
+
+								<label class="admin-field">
+									<span class="admin-field__label">WhatsApp</span>
+									<input class="admin-input" name="whatsapp" type="url" />
+								</label>
+
+								<div class="admin-actions">
+									<button class="admin-btn admin-btn_primary" id="saveButton" type="button">
+										Сохранить контакты
+									</button>
+									<div class="admin-status-note" id="statusMessage" aria-live="polite"></div>
+								</div>
+							</form>
+						</section>
+					</div>
 				</section>
 			</div>
 		</main>

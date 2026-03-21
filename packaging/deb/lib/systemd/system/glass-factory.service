@@ -5,6 +5,7 @@ After=network.target
 [Service]
 Type=simple
 WorkingDirectory=/opt/glass-factory
+EnvironmentFile=-/etc/glass-factory/glass-factory.env
 ExecStart=/opt/glass-factory/server_app
 Restart=always
 RestartSec=3

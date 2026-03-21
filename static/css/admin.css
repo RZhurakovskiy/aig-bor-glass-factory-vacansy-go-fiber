@@ -3,6 +3,7 @@
 :root {
 	--admin-bg: #f3f3f1;
 	--admin-surface: #ffffff;
+	--admin-surface-muted: #f8f7f3;
 	--admin-text: #181818;
 	--admin-muted: #666666;
 	--admin-border: #d9d9d4;
@@ -26,7 +27,9 @@ body.admin-body {
 	margin: 0;
 	font-family: 'Inria Sans', sans-serif;
 	color: var(--admin-text);
-	background: var(--admin-bg);
+	background:
+		radial-gradient(circle at top left, rgba(236, 0, 0, 0.08), transparent 28%),
+		linear-gradient(180deg, #faf9f6 0%, var(--admin-bg) 100%);
 }
 
 .admin-main {
@@ -34,7 +37,7 @@ body.admin-body {
 }
 
 .admin-shell {
-	width: min(100%, 720px);
+	width: min(100%, 1280px);
 	margin: 0 auto;
 }
 
@@ -42,21 +45,168 @@ body.admin-body {
 	padding: 28px;
 	border: 1px solid var(--admin-border);
 	border-radius: var(--admin-radius);
-	background: var(--admin-surface);
+	background: rgba(255, 255, 255, 0.92);
+	backdrop-filter: blur(10px);
+}
+
+.admin-panel__header,
+.admin-section__header,
+.admin-actions,
+.admin-vacancy-card,
+.admin-vacancy-card__actions,
+.admin-vacancy-card__meta,
+.admin-field_checkbox {
+	display: flex;
+}
+
+.admin-panel__header,
+.admin-section__header,
+.admin-actions,
+.admin-vacancy-card {
+	justify-content: space-between;
+}
+
+.admin-panel__header,
+.admin-section__header {
+	align-items: flex-start;
+	gap: 16px;
 }
 
 .admin-panel__header {
-	display: flex;
-	justify-content: space-between;
-	align-items: flex-start;
-	gap: 16px;
 	margin-bottom: 24px;
 }
 
-.admin-panel__title {
+.admin-panel__title,
+.admin-section__title,
+.admin-vacancy-card__title {
 	margin: 0;
-	font-size: 32px;
+}
+
+.admin-panel__title {
+	font-size: 34px;
 	line-height: 1.05;
+}
+
+.admin-panel__subtitle,
+.admin-section__subtitle,
+.admin-vacancy-card__summary,
+.admin-vacancy-card__order,
+.admin-vacancies-empty,
+.admin-status-note {
+	color: var(--admin-muted);
+}
+
+.admin-panel__subtitle,
+.admin-section__subtitle {
+	margin: 8px 0 0;
+	line-height: 1.5;
+}
+
+.admin-layout {
+	display: grid;
+	grid-template-columns: minmax(320px, 0.95fr) minmax(360px, 1.05fr);
+	gap: 20px;
+}
+
+.admin-section {
+	display: grid;
+	gap: 18px;
+	padding: 22px;
+	border: 1px solid var(--admin-border);
+	border-radius: var(--admin-radius);
+	background: var(--admin-surface);
+}
+
+.admin-section_full {
+	grid-column: 1 / -1;
+}
+
+.admin-section__title {
+	font-size: 26px;
+	line-height: 1.1;
+}
+
+.admin-vacancies-empty {
+	padding: 18px;
+	border: 1px dashed var(--admin-border);
+	border-radius: 14px;
+	background: var(--admin-surface-muted);
+}
+
+.admin-vacancies-list {
+	display: grid;
+	gap: 12px;
+	align-content: start;
+}
+
+.admin-vacancy-card {
+	flex-direction: column;
+	align-items: stretch;
+	gap: 14px;
+	padding: 16px;
+	border: 1px solid var(--admin-border);
+	border-radius: 16px;
+	background: var(--admin-surface-muted);
+}
+
+.admin-vacancy-card.is-active {
+	border-color: var(--admin-accent);
+	box-shadow: 0 0 0 3px var(--admin-accent-soft);
+}
+
+.admin-vacancy-card__content {
+	display: grid;
+	gap: 10px;
+	min-width: 0;
+}
+
+.admin-vacancy-card__meta,
+.admin-vacancy-card__actions,
+.admin-field_checkbox {
+	align-items: center;
+	gap: 10px;
+}
+
+.admin-vacancy-card__meta {
+	flex-wrap: wrap;
+}
+
+.admin-vacancy-card__actions {
+	flex-wrap: wrap;
+	justify-content: flex-start;
+}
+
+.admin-vacancy-card__title {
+	font-size: 20px;
+	line-height: 1.15;
+}
+
+.admin-vacancy-card__summary {
+	margin: 0;
+	line-height: 1.45;
+}
+
+.admin-vacancy-card__order {
+	font-size: 13px;
+}
+
+.admin-badge {
+	display: inline-flex;
+	align-items: center;
+	padding: 6px 10px;
+	border-radius: 999px;
+	font-size: 12px;
+	font-weight: 700;
+}
+
+.admin-badge_success {
+	background: rgba(0, 138, 84, 0.12);
+	color: #05633e;
+}
+
+.admin-badge_muted {
+	background: rgba(38, 38, 38, 0.08);
+	color: #4e4e4e;
 }
 
 .admin-form {
@@ -74,6 +224,12 @@ body.admin-body {
 	display: grid;
 	gap: 8px;
 	min-width: 0;
+}
+
+.admin-field_checkbox {
+	align-self: end;
+	min-height: 48px;
+	padding: 0 4px;
 }
 
 .admin-field__label {
@@ -100,13 +256,22 @@ body.admin-body {
 	box-shadow: 0 0 0 3px var(--admin-accent-soft);
 }
 
+.admin-checkbox {
+	width: 18px;
+	height: 18px;
+	accent-color: var(--admin-accent);
+}
+
 .admin-textarea {
 	min-height: 120px;
 	resize: vertical;
 }
 
+.admin-textarea_compact {
+	min-height: 92px;
+}
+
 .admin-actions {
-	display: flex;
 	align-items: center;
 	flex-wrap: wrap;
 	gap: 12px;
@@ -123,6 +288,14 @@ body.admin-body {
 	font-weight: 700;
 	color: var(--admin-text);
 	cursor: pointer;
+	transition:
+		border-color 0.18s ease,
+		background-color 0.18s ease,
+		color 0.18s ease;
+}
+
+.admin-btn:hover {
+	border-color: #bdbdb6;
 }
 
 .admin-btn:disabled {
@@ -136,14 +309,33 @@ body.admin-body {
 	color: #fff;
 }
 
+.admin-btn_primary:hover {
+	border-color: #b90000;
+	background: #b90000;
+}
+
+.admin-btn_compact {
+	padding: 10px 12px;
+	font-size: 14px;
+}
+
+.admin-btn_danger {
+	color: #9f1717;
+}
+
 .admin-status-note {
 	min-height: 22px;
 	font-size: 14px;
-	color: var(--admin-muted);
 }
 
 .admin-status-note.is-error {
 	color: #9f1717;
+}
+
+@media (max-width: 1080px) {
+	.admin-layout {
+		grid-template-columns: 1fr;
+	}
 }
 
 @media (max-width: 760px) {
@@ -151,12 +343,15 @@ body.admin-body {
 		padding: 24px 16px;
 	}
 
-	.admin-panel {
+	.admin-panel,
+	.admin-section {
 		padding: 20px;
 	}
 
 	.admin-panel__header,
-	.admin-form__grid {
+	.admin-section__header,
+	.admin-form__grid,
+	.admin-vacancy-card {
 		grid-template-columns: 1fr;
 		flex-direction: column;
 	}
@@ -165,7 +360,12 @@ body.admin-body {
 		font-size: 28px;
 	}
 
-	.admin-actions {
+	.admin-section__title {
+		font-size: 22px;
+	}
+
+	.admin-actions,
+	.admin-vacancy-card__actions {
 		align-items: stretch;
 	}
 

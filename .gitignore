@@ -1,3 +1,4 @@
 *.db
 glass-factory.db
 server_app
+*.env

@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	assets "glass-factory"
@@ -47,36 +48,13 @@ func main() {
 }
 
 func newHandler(db *gorm.DB) *handlers.Handler {
-	adminPassword := os.Getenv("ADMIN_PASSWORD")
-	if adminPassword == "" {
-		adminPassword = "Admin12345"
-	}
-
-	sessionSecret := os.Getenv("ADMIN_SESSION_SECRET")
-	if sessionSecret == "" {
-		var err error
-		sessionSecret, err = generateSessionSecret()
-		if err != nil {
-			log.Fatalf("ошибка генерации секрета сессии: %v", err)
-		}
-		log.Println("ADMIN_SESSION_SECRET не задан, используется временный секрет до перезапуска сервера")
-	}
+	adminPassword := mustLoadConfig("ADMIN_PASSWORD", "Admin12345")
+	sessionSecret := mustLoadSessionSecret()
 
 	return handlers.New(db, adminPassword, []byte(sessionSecret), 24*time.Hour)
 }
 
 func seedDatabase(db *gorm.DB) error {
-	var vacancyCount int64
-	if err := db.Model(&models.Vacancy{}).Count(&vacancyCount).Error; err != nil {
-		return err
-	}
-	if vacancyCount == 0 {
-		vacancies := models.DefaultVacancies()
-		if err := db.Create(&vacancies).Error; err != nil {
-			return err
-		}
-	}
-
 	var contactCount int64
 	if err := db.Model(&models.Contact{}).Count(&contactCount).Error; err != nil {
 		return err
@@ -105,4 +83,37 @@ func generateSessionSecret() (string, error) {
 		return "", err
 	}
 	return base64.RawURLEncoding.EncodeToString(buf), nil
+}
+
+func mustLoadConfig(key string, devFallback string) string {
+	value := strings.TrimSpace(os.Getenv(key))
+	if value != "" {
+		return value
+	}
+
+	if os.Getenv("APP_ENV") == "dev" {
+		return devFallback
+	}
+
+	log.Fatalf("не задана обязательная переменная окружения %s", key)
+	return ""
+}
+
+func mustLoadSessionSecret() string {
+	secret := strings.TrimSpace(os.Getenv("ADMIN_SESSION_SECRET"))
+	if secret != "" {
+		return secret
+	}
+
+	if os.Getenv("APP_ENV") == "dev" {
+		generated, err := generateSessionSecret()
+		if err != nil {
+			log.Fatalf("ошибка генерации секрета сессии: %v", err)
+		}
+		log.Println("ADMIN_SESSION_SECRET не задан, используется временный секрет только для dev-режима")
+		return generated
+	}
+
+	log.Fatalf("не задана обязательная переменная окружения %s", "ADMIN_SESSION_SECRET")
+	return ""
 }
