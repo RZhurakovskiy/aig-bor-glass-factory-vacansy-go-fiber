@@ -5,6 +5,12 @@ const elements = {
 	statusMessage: document.getElementById('statusMessage'),
 	vacanciesList: document.getElementById('vacanciesList'),
 	vacanciesEmpty: document.getElementById('vacanciesEmpty'),
+	openTrashButton: document.getElementById('openTrashButton'),
+	trashVacanciesList: document.getElementById('trashVacanciesList'),
+	trashEmpty: document.getElementById('trashEmpty'),
+	emptyTrashButton: document.getElementById('emptyTrashButton'),
+	trashModal: document.getElementById('trashModal'),
+	closeTrashButton: document.getElementById('closeTrashButton'),
 	vacancyForm: document.getElementById('vacancyForm'),
 	vacancyFormTitle: document.getElementById('vacancyFormTitle'),
 	vacancyStatusMessage: document.getElementById('vacancyStatusMessage'),
@@ -25,8 +31,10 @@ const elements = {
 
 const state = {
 	vacancies: [],
+	trashVacancies: [],
 	selectedVacancyId: null,
 	pendingDeleteVacancyId: null,
+	pendingDeleteMode: null,
 }
 
 bootstrap().catch(error => {
@@ -70,6 +78,18 @@ function bindEvents() {
 		elements.cancelDeleteVacancyButton.addEventListener('click', closeDeleteVacancyModal)
 	}
 
+	if (elements.emptyTrashButton) {
+		elements.emptyTrashButton.addEventListener('click', handleEmptyTrashClick)
+	}
+
+	if (elements.openTrashButton) {
+		elements.openTrashButton.addEventListener('click', handleOpenTrash)
+	}
+
+	if (elements.closeTrashButton) {
+		elements.closeTrashButton.addEventListener('click', closeTrashModal)
+	}
+
 	if (hasVacancyUI()) {
 		elements.vacancyForm.addEventListener('submit', handleVacancySubmit)
 		elements.saveVacancyButton.addEventListener('click', handleVacancySubmit)
@@ -77,6 +97,7 @@ function bindEvents() {
 		elements.createVacancyButton.addEventListener('click', resetVacancyForm)
 		elements.vacancyForm.addEventListener('click', handleVacancyFormClick)
 		elements.vacanciesList.addEventListener('click', handleVacancyListClick)
+		elements.trashVacanciesList.addEventListener('click', handleTrashListClick)
 	}
 
 	document.addEventListener('click', handleDocumentClick)
@@ -116,6 +137,12 @@ async function refreshVacancies() {
 	}
 
 	resetVacancyForm()
+}
+
+async function refreshTrashVacancies() {
+	const vacancies = await api('/api/admin/vacancies/trash')
+	state.trashVacancies = vacancies
+	renderTrashVacancies()
 }
 
 function renderVacancies() {
@@ -178,6 +205,49 @@ function renderVacancies() {
 	elements.vacanciesList.appendChild(fragment)
 }
 
+function renderTrashVacancies() {
+	if (!hasVacancyUI()) return
+
+	elements.trashVacanciesList.innerHTML = ''
+	elements.trashEmpty.hidden = state.trashVacancies.length > 0
+	elements.emptyTrashButton.disabled = state.trashVacancies.length === 0
+
+	if (!state.trashVacancies.length) return
+
+	const fragment = document.createDocumentFragment()
+
+	state.trashVacancies.forEach(vacancy => {
+		const item = document.createElement('article')
+		item.className = 'admin-vacancy-card admin-vacancy-card_trash'
+
+		const trashedAt = vacancy.trashedAt
+			? new Date(vacancy.trashedAt).toLocaleString('ru-RU')
+			: ''
+
+		item.innerHTML = `
+			<div class="admin-vacancy-card__content">
+				<div class="admin-vacancy-card__meta">
+					<span class="admin-badge admin-badge_muted">В корзине</span>
+					${trashedAt ? `<span class="admin-vacancy-card__order">${escapeHtml(trashedAt)}</span>` : ''}
+				</div>
+				<h3 class="admin-vacancy-card__title">${escapeHtml(vacancy.title)}</h3>
+			</div>
+			<div class="admin-vacancy-card__actions">
+				<button class="admin-btn" data-trash-action="restore" data-id="${vacancy.id}" type="button">
+					Восстановить
+				</button>
+				<button class="admin-btn admin-btn_danger" data-trash-action="purge" data-id="${vacancy.id}" type="button">
+					Удалить навсегда
+				</button>
+			</div>
+		`
+
+		fragment.appendChild(item)
+	})
+
+	elements.trashVacanciesList.appendChild(fragment)
+}
+
 function handleVacancyListClick(event) {
 	const button = event.target.closest('[data-action]')
 	if (!button) return
@@ -206,6 +276,24 @@ function handleVacancyListClick(event) {
 
 	if (button.dataset.action === 'delete') {
 		void handleVacancyDelete(id)
+	}
+}
+
+function handleTrashListClick(event) {
+	const button = event.target.closest('[data-trash-action]')
+	if (!button) return
+
+	const id = Number(button.dataset.id)
+	if (!id) return
+
+	if (button.dataset.trashAction === 'purge') {
+		const vacancy = state.trashVacancies.find(item => item.id === id)
+		if (vacancy) openDeleteVacancyModal(vacancy, 'purge')
+		return
+	}
+
+	if (button.dataset.trashAction === 'restore') {
+		void handleRestoreVacancy(id)
 	}
 }
 
@@ -254,57 +342,161 @@ async function handleVacancyDelete(id) {
 	const vacancy = findVacancy(id)
 	if (!vacancy) return
 
-	openDeleteVacancyModal(vacancy)
+	openDeleteVacancyModal(vacancy, 'trash')
 }
 
 async function confirmVacancyDelete() {
 	const id = state.pendingDeleteVacancyId
-	if (!id) return
+	const mode = state.pendingDeleteMode
+	if (!mode || (mode !== 'empty-trash' && !id)) return
 
 	closeDeleteVacancyModal()
-	setVacancyStatus('Удаляю вакансию...')
+	setVacancyStatus(
+		mode === 'trash'
+			? 'Перемещаю вакансию в корзину...'
+			: mode === 'purge'
+				? 'Удаляю вакансию навсегда...'
+				: 'Очищаю корзину...'
+	)
 
 	try {
-		await api(`/api/admin/vacancies/${id}`, { method: 'DELETE' })
+		if (mode === 'empty-trash') {
+			await api('/api/admin/vacancies/trash', { method: 'DELETE' })
+		} else {
+			await api(
+				mode === 'trash'
+					? `/api/admin/vacancies/${id}`
+					: `/api/admin/vacancies/${id}/permanent`,
+				{ method: 'DELETE' }
+			)
+		}
 
-		if (state.selectedVacancyId === id) {
+		if (mode !== 'empty-trash' && state.selectedVacancyId === id) {
 			state.selectedVacancyId = null
 		}
 
-		await refreshVacancies()
-		setVacancyStatus('Вакансия удалена.')
+		await Promise.all([refreshVacancies(), refreshTrashVacancies()])
+		setVacancyStatus(
+			mode === 'trash'
+				? 'Вакансия перемещена в корзину.'
+				: mode === 'purge'
+					? 'Вакансия удалена навсегда.'
+					: 'Корзина очищена.'
+		)
 	} catch (error) {
 		console.error(error)
-		setVacancyStatus(getErrorMessage(error, 'Не удалось удалить вакансию.'), true)
+		setVacancyStatus(
+			getErrorMessage(
+				error,
+				mode === 'trash'
+					? 'Не удалось переместить вакансию в корзину.'
+					: mode === 'purge'
+						? 'Не удалось удалить вакансию навсегда.'
+						: 'Не удалось очистить корзину.'
+			),
+			true
+		)
 	}
 }
 
-function openDeleteVacancyModal(vacancy) {
+function openDeleteVacancyModal(vacancy, mode) {
 	if (!elements.deleteVacancyModal || !elements.deleteVacancyText) return
 
 	state.pendingDeleteVacancyId = vacancy.id
-	elements.deleteVacancyText.textContent = `Вы действительно хотите удалить вакансию «${vacancy.title}»? Это действие нельзя отменить.`
+	state.pendingDeleteMode = mode
+	elements.confirmDeleteVacancyButton.textContent =
+		mode === 'trash' ? 'В корзину' : 'Удалить навсегда'
+	elements.deleteVacancyText.textContent =
+		mode === 'trash'
+			? `Вакансия «${vacancy.title}» будет перемещена в корзину.`
+			: `Вакансия «${vacancy.title}» будет удалена навсегда без возможности восстановления.`
 	elements.deleteVacancyModal.hidden = false
-	document.body.classList.add('admin-modal-open')
+	syncModalState()
 }
 
 function closeDeleteVacancyModal() {
 	if (!elements.deleteVacancyModal) return
 
 	state.pendingDeleteVacancyId = null
+	state.pendingDeleteMode = null
+	elements.confirmDeleteVacancyButton.textContent = 'Удалить'
 	elements.deleteVacancyModal.hidden = true
-	document.body.classList.remove('admin-modal-open')
+	syncModalState()
 }
 
 function handleDocumentClick(event) {
 	if (event.target.closest('[data-close-delete-modal]')) {
 		closeDeleteVacancyModal()
+		return
+	}
+
+	if (event.target.closest('[data-close-trash-modal]')) {
+		closeTrashModal()
 	}
 }
 
 function handleDocumentKeydown(event) {
 	if (event.key === 'Escape' && !elements.deleteVacancyModal?.hidden) {
 		closeDeleteVacancyModal()
+		return
+	}
+
+	if (event.key === 'Escape' && !elements.trashModal?.hidden) {
+		closeTrashModal()
+	}
+}
+
+async function handleOpenTrash() {
+	openTrashModal()
+	await refreshTrashVacancies()
+}
+
+function openTrashModal() {
+	if (!elements.trashModal) return
+
+	elements.trashModal.hidden = false
+	syncModalState()
+}
+
+function closeTrashModal() {
+	if (!elements.trashModal) return
+
+	elements.trashModal.hidden = true
+	syncModalState()
+}
+
+function handleEmptyTrashClick() {
+	if (!state.trashVacancies.length || !elements.deleteVacancyModal || !elements.deleteVacancyText) {
+		return
+	}
+
+	state.pendingDeleteVacancyId = 0
+	state.pendingDeleteMode = 'empty-trash'
+	elements.confirmDeleteVacancyButton.textContent = 'Очистить корзину'
+	elements.deleteVacancyText.textContent =
+		'Все вакансии из корзины будут удалены навсегда без возможности восстановления.'
+	elements.deleteVacancyModal.hidden = false
+	syncModalState()
+}
+
+function syncModalState() {
+	const hasOpenModal =
+		(elements.deleteVacancyModal && !elements.deleteVacancyModal.hidden) ||
+		(elements.trashModal && !elements.trashModal.hidden)
+
+	document.body.classList.toggle('admin-modal-open', Boolean(hasOpenModal))
+}
+
+async function handleRestoreVacancy(id) {
+	setVacancyStatus('Восстанавливаю вакансию...')
+
+	try {
+		await api(`/api/admin/vacancies/${id}/restore`, { method: 'PUT' })
+		await Promise.all([refreshVacancies(), refreshTrashVacancies()])
+		setVacancyStatus('Вакансия восстановлена.')
+	} catch (error) {
+		console.error(error)
+		setVacancyStatus(getErrorMessage(error, 'Не удалось восстановить вакансию.'), true)
 	}
 }
 
@@ -490,6 +682,9 @@ function hasVacancyUI() {
 	return Boolean(
 		elements.vacanciesList &&
 			elements.vacanciesEmpty &&
+			elements.trashVacanciesList &&
+			elements.trashEmpty &&
+			elements.emptyTrashButton &&
 			elements.vacancyForm &&
 			elements.vacancyFormTitle &&
 			elements.vacancyStatusMessage &&

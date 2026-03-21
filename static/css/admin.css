@@ -56,6 +56,7 @@ body.admin-modal-open {
 .admin-panel__header,
 .admin-section__header,
 .admin-actions,
+.admin-section__actions,
 .admin-vacancy-card,
 .admin-vacancy-card__actions,
 .admin-vacancy-card__meta,
@@ -66,12 +67,14 @@ body.admin-modal-open {
 .admin-panel__header,
 .admin-section__header,
 .admin-actions,
+.admin-section__actions,
 .admin-vacancy-card {
 	justify-content: space-between;
 }
 
 .admin-panel__header,
-.admin-section__header {
+.admin-section__header,
+.admin-section__actions {
 	align-items: flex-start;
 	gap: 16px;
 }
@@ -157,6 +160,10 @@ body.admin-modal-open {
 .admin-vacancy-card.is-active {
 	border-color: var(--admin-accent);
 	box-shadow: 0 0 0 3px var(--admin-accent-soft);
+}
+
+.admin-vacancy-card_trash {
+	background: #faf7f3;
 }
 
 .admin-vacancy-card__content {
@@ -430,6 +437,10 @@ body.admin-modal-open {
 	border-radius: 18px;
 	background: var(--admin-surface);
 	box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
+}
+
+.admin-modal__dialog_wide {
+	width: min(100%, 860px);
 }
 
 .admin-modal__title {

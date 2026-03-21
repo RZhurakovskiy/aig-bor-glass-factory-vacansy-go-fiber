@@ -26,10 +26,14 @@ func registerRoutes(app *fiber.App, db *gorm.DB, staticHTTPFS http.FileSystem, s
 
 	adminAPI := app.Group("/api/admin", h.RequireAdmin)
 	adminAPI.Get("/vacancies", h.GetAdminVacancies)
+	adminAPI.Get("/vacancies/trash", h.GetAdminTrashVacancies)
 	adminAPI.Post("/vacancies", h.CreateVacancy)
 	adminAPI.Put("/vacancies/order", h.ReorderVacancies)
 	adminAPI.Put("/vacancies/:id", h.UpdateVacancy)
+	adminAPI.Put("/vacancies/:id/restore", h.RestoreVacancy)
 	adminAPI.Delete("/vacancies/:id", h.DeleteVacancy)
+	adminAPI.Delete("/vacancies/:id/permanent", h.PurgeVacancy)
+	adminAPI.Delete("/vacancies/trash", h.EmptyTrashVacancies)
 	adminAPI.Get("/contacts", h.GetContacts)
 	adminAPI.Put("/contacts", h.UpdateContacts)
 

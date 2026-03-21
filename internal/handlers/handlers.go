@@ -28,20 +28,21 @@ type Handler struct {
 }
 
 type vacancyResponse struct {
-	ID               uint     `json:"id"`
-	SortOrder        int      `json:"sortOrder"`
-	Title            string   `json:"title"`
-	Schedule         string   `json:"schedule"`
-	ScheduleLines    []string `json:"scheduleLines"`
-	Summary          string   `json:"summary"`
-	Duties           string   `json:"duties"`
-	DutiesList       []string `json:"dutiesList"`
-	Requirements     string   `json:"requirements"`
-	RequirementsList []string `json:"requirementsList"`
-	Conditions       string   `json:"conditions"`
-	ConditionsList   []string `json:"conditionsList"`
-	Salary           string   `json:"salary"`
-	Active           bool     `json:"active"`
+	ID               uint       `json:"id"`
+	SortOrder        int        `json:"sortOrder"`
+	Title            string     `json:"title"`
+	Schedule         string     `json:"schedule"`
+	ScheduleLines    []string   `json:"scheduleLines"`
+	Summary          string     `json:"summary"`
+	Duties           string     `json:"duties"`
+	DutiesList       []string   `json:"dutiesList"`
+	Requirements     string     `json:"requirements"`
+	RequirementsList []string   `json:"requirementsList"`
+	Conditions       string     `json:"conditions"`
+	ConditionsList   []string   `json:"conditionsList"`
+	Salary           string     `json:"salary"`
+	Active           bool       `json:"active"`
+	TrashedAt        *time.Time `json:"trashedAt,omitempty"`
 }
 
 type vacancyPayload struct {
@@ -163,7 +164,7 @@ func (h *Handler) Logout(c *fiber.Ctx) error {
 
 func (h *Handler) GetPublicVacancies(c *fiber.Ctx) error {
 	var vacancies []models.Vacancy
-	if err := h.db.Where("active = ?", true).Order("sort_order asc, id asc").Find(&vacancies).Error; err != nil {
+	if err := h.db.Where("active = ? AND trashed_at IS NULL", true).Order("sort_order asc, id asc").Find(&vacancies).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "не удалось получить список вакансий"})
 	}
 
@@ -177,8 +178,22 @@ func (h *Handler) GetPublicVacancies(c *fiber.Ctx) error {
 
 func (h *Handler) GetAdminVacancies(c *fiber.Ctx) error {
 	var vacancies []models.Vacancy
-	if err := h.db.Order("sort_order asc, id asc").Find(&vacancies).Error; err != nil {
+	if err := h.db.Where("trashed_at IS NULL").Order("sort_order asc, id asc").Find(&vacancies).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "не удалось получить список вакансий"})
+	}
+
+	response := make([]vacancyResponse, 0, len(vacancies))
+	for _, vacancy := range vacancies {
+		response = append(response, toVacancyResponse(vacancy))
+	}
+
+	return c.JSON(response)
+}
+
+func (h *Handler) GetAdminTrashVacancies(c *fiber.Ctx) error {
+	var vacancies []models.Vacancy
+	if err := h.db.Where("trashed_at IS NOT NULL").Order("trashed_at desc, id desc").Find(&vacancies).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "не удалось получить корзину вакансий"})
 	}
 
 	response := make([]vacancyResponse, 0, len(vacancies))
@@ -215,6 +230,7 @@ func (h *Handler) CreateVacancy(c *fiber.Ctx) error {
 		Conditions:   normalizeMultiline(payload.Conditions),
 		Salary:       strings.TrimSpace(payload.Salary),
 		Active:       payload.Active,
+		TrashedAt:    nil,
 	}
 
 	if err := h.db.Create(&vacancy).Error; err != nil {
@@ -231,7 +247,7 @@ func (h *Handler) UpdateVacancy(c *fiber.Ctx) error {
 	}
 
 	var vacancy models.Vacancy
-	if err := h.db.First(&vacancy, id).Error; err != nil {
+	if err := h.db.Where("trashed_at IS NULL").First(&vacancy, id).Error; err != nil {
 		return respondDBError(c, err)
 	}
 
@@ -267,12 +283,68 @@ func (h *Handler) DeleteVacancy(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "некорректный идентификатор вакансии"})
 	}
 
-	result := h.db.Delete(&models.Vacancy{}, id)
+	var vacancy models.Vacancy
+	if err := h.db.Where("trashed_at IS NULL").First(&vacancy, id).Error; err != nil {
+		return respondDBError(c, err)
+	}
+
+	now := time.Now()
+	vacancy.Active = false
+	vacancy.TrashedAt = &now
+
+	if err := h.db.Save(&vacancy).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "не удалось переместить вакансию в корзину"})
+	}
+
+	return c.JSON(fiber.Map{"ok": true})
+}
+
+func (h *Handler) PurgeVacancy(c *fiber.Ctx) error {
+	id, err := parseUintParam(c, "id")
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "некорректный идентификатор вакансии"})
+	}
+
+	result := h.db.Where("trashed_at IS NOT NULL").Delete(&models.Vacancy{}, id)
 	if result.Error != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "не удалось удалить вакансию"})
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "не удалось удалить вакансию навсегда"})
 	}
 	if result.RowsAffected == 0 {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "вакансия не найдена"})
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "вакансия в корзине не найдена"})
+	}
+
+	return c.JSON(fiber.Map{"ok": true})
+}
+
+func (h *Handler) RestoreVacancy(c *fiber.Ctx) error {
+	id, err := parseUintParam(c, "id")
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "некорректный идентификатор вакансии"})
+	}
+
+	var vacancy models.Vacancy
+	if err := h.db.Where("trashed_at IS NOT NULL").First(&vacancy, id).Error; err != nil {
+		return respondDBError(c, err)
+	}
+
+	sortOrder, err := h.nextVacancySortOrder()
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "не удалось восстановить вакансию"})
+	}
+
+	vacancy.TrashedAt = nil
+	vacancy.SortOrder = sortOrder
+
+	if err := h.db.Save(&vacancy).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "не удалось восстановить вакансию"})
+	}
+
+	return c.JSON(toVacancyResponse(vacancy))
+}
+
+func (h *Handler) EmptyTrashVacancies(c *fiber.Ctx) error {
+	if err := h.db.Where("trashed_at IS NOT NULL").Delete(&models.Vacancy{}).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "не удалось очистить корзину"})
 	}
 
 	return c.JSON(fiber.Map{"ok": true})
@@ -289,7 +361,7 @@ func (h *Handler) ReorderVacancies(c *fiber.Ctx) error {
 	}
 
 	var count int64
-	if err := h.db.Model(&models.Vacancy{}).Count(&count).Error; err != nil {
+	if err := h.db.Model(&models.Vacancy{}).Where("trashed_at IS NULL").Count(&count).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "не удалось изменить порядок вакансий"})
 	}
 
@@ -379,6 +451,7 @@ func toVacancyResponse(v models.Vacancy) vacancyResponse {
 		ConditionsList:   models.SplitLines(v.Conditions),
 		Salary:           v.Salary,
 		Active:           v.Active,
+		TrashedAt:        v.TrashedAt,
 	}
 }
 

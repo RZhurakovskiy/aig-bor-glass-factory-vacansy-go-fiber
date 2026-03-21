@@ -28,13 +28,18 @@
 								<div>
 									<h2 class="admin-section__title">Вакансии</h2>
 								</div>
-								<button
-									class="admin-btn admin-btn_primary"
-									id="createVacancyButton"
-									type="button"
-								>
-									Новая вакансия
-								</button>
+								<div class="admin-section__actions">
+									<button class="admin-btn" id="openTrashButton" type="button">
+										Корзина
+									</button>
+									<button
+										class="admin-btn admin-btn_primary"
+										id="createVacancyButton"
+										type="button"
+									>
+										Новая вакансия
+									</button>
+								</div>
 							</div>
 
 							<div class="admin-vacancies-empty" id="vacanciesEmpty" hidden>
@@ -241,6 +246,39 @@
 						Отмена
 					</button>
 				</div>
+			</div>
+		</div>
+
+		<div class="admin-modal" id="trashModal" hidden>
+			<div class="admin-modal__backdrop" data-close-trash-modal></div>
+			<div
+				class="admin-modal__dialog admin-modal__dialog_wide"
+				role="dialog"
+				aria-modal="true"
+				aria-labelledby="trashModalTitle"
+			>
+				<div class="admin-section__header">
+					<div>
+						<h2 class="admin-modal__title" id="trashModalTitle">Корзина вакансий</h2>
+						<p class="admin-modal__text">
+							Удалённые вакансии можно восстановить или удалить навсегда.
+						</p>
+					</div>
+					<div class="admin-section__actions">
+						<button class="admin-btn admin-btn_danger" id="emptyTrashButton" type="button">
+							Очистить корзину
+						</button>
+						<button class="admin-btn" id="closeTrashButton" type="button">
+							Закрыть
+						</button>
+					</div>
+				</div>
+
+				<div class="admin-vacancies-empty" id="trashEmpty" hidden>
+					Корзина пуста.
+				</div>
+
+				<div class="admin-vacancies-list" id="trashVacanciesList"></div>
 			</div>
 		</div>
 

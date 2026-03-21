@@ -16,6 +16,7 @@ type Vacancy struct {
 	Conditions   string
 	Salary       string
 	Active       bool
+	TrashedAt    *time.Time
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
 }
