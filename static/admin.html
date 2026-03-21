@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ru">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Панель администратора | Контакты</title>
+		<link rel="stylesheet" href="./css/admin.css" />
+	</head>
+	<body class="admin-body">
+		<main class="admin-main">
+			<div class="admin-shell admin-shell_narrow">
+				<section class="admin-panel">
+					<div class="admin-panel__header">
+						<div>
+							<h1 class="admin-panel__title">Контакты сайта</h1>
+						</div>
+						<button class="admin-btn admin-btn_ghost" id="logoutButton" type="button">
+							Выйти
+						</button>
+					</div>
+
+					<form class="admin-form" id="contactsForm">
+						<label class="admin-field">
+							<span class="admin-field__label">Телефоны</span>
+							<textarea
+								class="admin-input admin-textarea"
+								name="phones"
+								placeholder="Один телефон на строку"
+							></textarea>
+						</label>
+
+						<div class="admin-form__grid">
+							<label class="admin-field">
+								<span class="admin-field__label">E-mail</span>
+								<input class="admin-input" name="email" type="email" />
+							</label>
+							<label class="admin-field">
+								<span class="admin-field__label">Адрес</span>
+								<input class="admin-input" name="address" type="text" />
+							</label>
+						</div>
+
+						<div class="admin-form__grid">
+							<label class="admin-field">
+								<span class="admin-field__label">VK</span>
+								<input class="admin-input" name="vk" type="url" />
+							</label>
+							<label class="admin-field">
+								<span class="admin-field__label">Telegram</span>
+								<input class="admin-input" name="telegram" type="url" />
+							</label>
+						</div>
+
+						<label class="admin-field">
+							<span class="admin-field__label">WhatsApp</span>
+							<input class="admin-input" name="whatsapp" type="url" />
+						</label>
+
+						<div class="admin-actions">
+							<button class="admin-btn admin-btn_primary" id="saveButton" type="submit">
+								Сохранить контакты
+							</button>
+							<div class="admin-status-note" id="statusMessage" aria-live="polite"></div>
+						</div>
+					</form>
+				</section>
+			</div>
+		</main>
+
+		<script src="./js/admin.js"></script>
+	</body>
+</html>

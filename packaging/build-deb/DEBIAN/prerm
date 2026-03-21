@@ -1,0 +1,6 @@
+#!/bin/sh
+set -e
+
+systemctl stop glass-factory.service >/dev/null 2>&1 || true
+
+exit 0
