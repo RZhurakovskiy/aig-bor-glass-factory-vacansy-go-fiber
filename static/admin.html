@@ -725,6 +725,39 @@
 			</div>
 		</div>
 
+		<div class="admin-modal" id="resetVacancyModal" hidden>
+			<div class="admin-modal__backdrop" data-close-reset-modal></div>
+			<div
+				class="admin-modal__dialog"
+				role="dialog"
+				aria-modal="true"
+				aria-labelledby="resetVacancyTitle"
+			>
+				<h2 class="admin-modal__title" id="resetVacancyTitle">
+					Очистить форму?
+				</h2>
+				<p class="admin-modal__text" id="resetVacancyText">
+					Все несохраненные изменения в форме редактирования будут удалены.
+				</p>
+				<div class="admin-modal__actions">
+					<button
+						class="admin-btn admin-btn_danger"
+						id="confirmResetVacancyButton"
+						type="button"
+					>
+						Очистить форму
+					</button>
+					<button
+						class="admin-btn"
+						id="cancelResetVacancyButton"
+						type="button"
+					>
+						Отмена
+					</button>
+				</div>
+			</div>
+		</div>
+
 		<div class="admin-modal" id="trashModal" hidden>
 			<div class="admin-modal__backdrop" data-close-trash-modal></div>
 			<div

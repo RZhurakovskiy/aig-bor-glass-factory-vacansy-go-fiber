@@ -47,6 +47,9 @@ const elements = {
 	saveVacancyButton: document.getElementById('saveVacancyButton'),
 	resetVacancyButton: document.getElementById('resetVacancyButton'),
 	createVacancyButton: document.getElementById('createVacancyButton'),
+	resetVacancyModal: document.getElementById('resetVacancyModal'),
+	confirmResetVacancyButton: document.getElementById('confirmResetVacancyButton'),
+	cancelResetVacancyButton: document.getElementById('cancelResetVacancyButton'),
 	userForm: document.getElementById('userForm'),
 	userFormTitle: document.getElementById('userFormTitle'),
 	userStatusMessage: document.getElementById('userStatusMessage'),
@@ -84,6 +87,7 @@ const state = {
 	activeMetricsTab: 'vacancies',
 	selectedVacancyId: null,
 	selectedUserId: null,
+	pendingVacancyReset: false,
 	pendingDeleteVacancyId: null,
 	pendingDeleteMode: null,
 	loaders: new Map(),
@@ -163,8 +167,16 @@ function bindEvents() {
 		elements.confirmDeleteVacancyButton.addEventListener('click', confirmVacancyDelete)
 	}
 
+	if (elements.confirmResetVacancyButton) {
+		elements.confirmResetVacancyButton.addEventListener('click', confirmVacancyReset)
+	}
+
 	if (elements.cancelDeleteVacancyButton) {
 		elements.cancelDeleteVacancyButton.addEventListener('click', closeDeleteVacancyModal)
+	}
+
+	if (elements.cancelResetVacancyButton) {
+		elements.cancelResetVacancyButton.addEventListener('click', closeResetVacancyModal)
 	}
 
 	if (elements.emptyTrashButton) {
@@ -182,7 +194,7 @@ function bindEvents() {
 	if (isVacanciesPage() && hasVacancyUI()) {
 		elements.vacancyForm.addEventListener('submit', handleVacancySubmit)
 		elements.saveVacancyButton.addEventListener('click', handleVacancySubmit)
-		elements.resetVacancyButton.addEventListener('click', resetVacancyForm)
+		elements.resetVacancyButton.addEventListener('click', handleResetVacancyClick)
 		elements.createVacancyButton.addEventListener('click', resetVacancyForm)
 		elements.vacancyForm.addEventListener('click', handleVacancyFormClick)
 		elements.vacanciesList.addEventListener('click', handleVacancyListClick)
@@ -1094,6 +1106,11 @@ function handleDocumentClick(event) {
 		return
 	}
 
+	if (event.target.closest('[data-close-reset-modal]')) {
+		closeResetVacancyModal()
+		return
+	}
+
 	if (event.target.closest('[data-close-trash-modal]')) {
 		closeTrashModal()
 	}
@@ -1106,6 +1123,11 @@ function handleDocumentKeydown(event) {
 
 	if (event.key === 'Escape' && !elements.deleteVacancyModal?.hidden) {
 		closeDeleteVacancyModal()
+		return
+	}
+
+	if (event.key === 'Escape' && !elements.resetVacancyModal?.hidden) {
+		closeResetVacancyModal()
 		return
 	}
 
@@ -1153,9 +1175,42 @@ function handleEmptyTrashClick() {
 function syncModalState() {
 	const hasOpenModal =
 		(elements.deleteVacancyModal && !elements.deleteVacancyModal.hidden) ||
+		(elements.resetVacancyModal && !elements.resetVacancyModal.hidden) ||
 		(elements.trashModal && !elements.trashModal.hidden)
 
 	document.body.classList.toggle('admin-modal-open', Boolean(hasOpenModal))
+}
+
+function handleResetVacancyClick() {
+	if (state.selectedVacancyId) {
+		openResetVacancyModal()
+		return
+	}
+
+	resetVacancyForm()
+}
+
+function openResetVacancyModal() {
+	if (!elements.resetVacancyModal) return
+
+	state.pendingVacancyReset = true
+	elements.resetVacancyModal.hidden = false
+	syncModalState()
+}
+
+function closeResetVacancyModal() {
+	if (!elements.resetVacancyModal) return
+
+	state.pendingVacancyReset = false
+	elements.resetVacancyModal.hidden = true
+	syncModalState()
+}
+
+function confirmVacancyReset() {
+	if (!state.pendingVacancyReset) return
+
+	closeResetVacancyModal()
+	resetVacancyForm()
 }
 
 async function handleRestoreVacancy(id) {
@@ -1288,7 +1343,7 @@ function fillVacancyForm(vacancy) {
 		'conditions',
 		vacancy.conditionsList || splitLines(vacancy.conditions)
 	)
-	elements.vacancyFormTitle.textContent = `Редактирование: ${vacancy.title}`
+	elements.vacancyFormTitle.innerHTML = `Редактирование: <span class="admin-badge admin-badge_editor">${escapeHtml(vacancy.title)}</span>`
 
 	renderVacancies()
 }
