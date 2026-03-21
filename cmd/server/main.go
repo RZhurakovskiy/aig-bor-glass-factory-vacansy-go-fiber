@@ -19,6 +19,8 @@ import (
 	"gorm.io/gorm"
 )
 
+var appVersion = "dev"
+
 func main() {
 	db, err := gorm.Open(sqlite.Open("glass-factory.db"), &gorm.Config{})
 	if err != nil {
@@ -51,7 +53,7 @@ func newHandler(db *gorm.DB) *handlers.Handler {
 	adminPassword := mustLoadConfig("ADMIN_PASSWORD", "Admin12345")
 	sessionSecret := mustLoadSessionSecret()
 
-	return handlers.New(db, adminPassword, []byte(sessionSecret), 24*time.Hour)
+	return handlers.New(db, adminPassword, []byte(sessionSecret), 24*time.Hour, appVersion)
 }
 
 func seedDatabase(db *gorm.DB) error {

@@ -6,6 +6,8 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"os"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -25,6 +27,7 @@ type Handler struct {
 	adminPassword string
 	sessionSecret []byte
 	sessionTTL    time.Duration
+	appVersion    string
 }
 
 type vacancyResponse struct {
@@ -85,12 +88,21 @@ type contactResponse struct {
 	WhatsApp     string   `json:"whatsapp"`
 }
 
-func New(db *gorm.DB, adminPassword string, sessionSecret []byte, sessionTTL time.Duration) *Handler {
+type adminMetaResponse struct {
+	Version   string `json:"version"`
+	GoVersion string `json:"goVersion"`
+	Platform  string `json:"platform"`
+	Hostname  string `json:"hostname"`
+	OSName    string `json:"osName"`
+}
+
+func New(db *gorm.DB, adminPassword string, sessionSecret []byte, sessionTTL time.Duration, appVersion string) *Handler {
 	return &Handler{
 		db:            db,
 		adminPassword: adminPassword,
 		sessionSecret: sessionSecret,
 		sessionTTL:    sessionTTL,
+		appVersion:    appVersion,
 	}
 }
 
@@ -408,6 +420,51 @@ func (h *Handler) GetContacts(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(toContactResponse(contact))
+}
+
+func (h *Handler) GetAdminMeta(c *fiber.Ctx) error {
+	version := strings.TrimSpace(h.appVersion)
+	if version == "" {
+		version = "dev"
+	}
+
+	hostname, err := os.Hostname()
+	if err != nil || strings.TrimSpace(hostname) == "" {
+		hostname = "unknown"
+	}
+
+	return c.JSON(adminMetaResponse{
+		Version:   fmt.Sprintf("Go server %s", version),
+		GoVersion: runtime.Version(),
+		Platform:  fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH),
+		Hostname:  hostname,
+		OSName:    detectOSName(),
+	})
+}
+
+func detectOSName() string {
+	if runtime.GOOS != "linux" {
+		return runtime.GOOS
+	}
+
+	content, err := os.ReadFile("/etc/os-release")
+	if err != nil {
+		return runtime.GOOS
+	}
+
+	for _, line := range strings.Split(string(content), "\n") {
+		if !strings.HasPrefix(line, "PRETTY_NAME=") {
+			continue
+		}
+
+		value := strings.TrimSpace(strings.TrimPrefix(line, "PRETTY_NAME="))
+		value = strings.Trim(value, `"`)
+		if value != "" {
+			return value
+		}
+	}
+
+	return runtime.GOOS
 }
 
 func (h *Handler) UpdateContacts(c *fiber.Ctx) error {

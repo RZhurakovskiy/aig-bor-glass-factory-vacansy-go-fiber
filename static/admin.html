@@ -4,6 +4,18 @@
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>Панель администратора</title>
+		<script>
+			;(() => {
+				const storageKey = 'admin-theme-mode'
+				const root = document.documentElement
+				const mode = localStorage.getItem(storageKey) || 'light'
+				const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+				const resolved = mode === 'system' ? (prefersDark ? 'dark' : 'light') : mode
+				root.dataset.themeMode = mode
+				root.dataset.theme = resolved
+				root.style.colorScheme = resolved
+			})()
+		</script>
 		<link rel="stylesheet" href="./css/admin.css" />
 	</head>
 	<body class="admin-body">
@@ -312,6 +324,66 @@
 		</div>
 
 		<div class="admin-toast-stack" id="toastStack" aria-live="polite" aria-atomic="true"></div>
+
+		<div class="admin-info-dock">
+			<button
+				class="admin-info-dock__button"
+				id="infoDockButton"
+				type="button"
+				aria-expanded="false"
+				aria-controls="infoDockPanel"
+				aria-label="Информация и тема"
+			>
+				i
+			</button>
+			<section class="admin-info-panel" id="infoDockPanel" hidden>
+				<div class="admin-info-panel__header">
+					<h2 class="admin-info-panel__title">Информация</h2>
+				</div>
+				<div class="admin-info-panel__meta">
+					<div class="admin-info-panel__row">
+						<span class="admin-info-panel__label">Версия сервера</span>
+						<span class="admin-info-panel__value" id="serverVersionValue">Загрузка...</span>
+					</div>
+					<div class="admin-info-panel__row">
+						<span class="admin-info-panel__label">Go runtime</span>
+						<span class="admin-info-panel__value admin-info-panel__value_code" id="serverGoVersionValue">
+							Загрузка...
+						</span>
+					</div>
+					<div class="admin-info-panel__row">
+						<span class="admin-info-panel__label">Платформа</span>
+						<span class="admin-info-panel__value admin-info-panel__value_code" id="serverPlatformValue">
+							Загрузка...
+						</span>
+					</div>
+					<div class="admin-info-panel__row">
+						<span class="admin-info-panel__label">Система</span>
+						<span class="admin-info-panel__value" id="serverOsValue">Загрузка...</span>
+					</div>
+					<div class="admin-info-panel__row">
+						<span class="admin-info-panel__label">Хост</span>
+						<span class="admin-info-panel__value admin-info-panel__value_code" id="serverHostValue">
+							Загрузка...
+						</span>
+					</div>
+				</div>
+				<div class="admin-info-panel__group">
+					<div class="admin-info-panel__label">Тема</div>
+					<div class="admin-theme-switcher" id="themeSwitcher">
+						<button class="admin-theme-switcher__button" data-theme-mode="light" type="button">
+							Светлая
+						</button>
+						<button class="admin-theme-switcher__button" data-theme-mode="dark" type="button">
+							Тёмная
+						</button>
+					</div>
+					<button class="admin-theme-system-button" id="themeSystemButton" type="button">
+						Системная тема
+					</button>
+				</div>
+			</section>
+		</div>
 
 		<script
 			src="https://api-maps.yandex.ru/2.1/?lang=ru_RU"

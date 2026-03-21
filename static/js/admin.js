@@ -3,6 +3,15 @@ const elements = {
 	logoutButton: document.getElementById('logoutButton'),
 	saveButton: document.getElementById('saveButton'),
 	statusMessage: document.getElementById('statusMessage'),
+	infoDockButton: document.getElementById('infoDockButton'),
+	infoDockPanel: document.getElementById('infoDockPanel'),
+	serverVersionValue: document.getElementById('serverVersionValue'),
+	serverGoVersionValue: document.getElementById('serverGoVersionValue'),
+	serverPlatformValue: document.getElementById('serverPlatformValue'),
+	serverOsValue: document.getElementById('serverOsValue'),
+	serverHostValue: document.getElementById('serverHostValue'),
+	themeSwitcher: document.getElementById('themeSwitcher'),
+	themeSystemButton: document.getElementById('themeSystemButton'),
 	adminMapPreview: document.getElementById('adminMapPreview'),
 	toastStack: document.getElementById('toastStack'),
 	vacanciesList: document.getElementById('vacanciesList'),
@@ -36,15 +45,20 @@ const elements = {
 const state = {
 	vacancies: [],
 	trashVacancies: [],
+	adminMeta: null,
 	adminMap: null,
 	adminPlacemark: null,
 	adminMapCoordinates: null,
 	adminMapAddress: '',
+	infoPanelOpen: false,
 	ymapsReady: null,
+	themeMode: document.documentElement.dataset.themeMode || 'system',
 	selectedVacancyId: null,
 	pendingDeleteVacancyId: null,
 	pendingDeleteMode: null,
 }
+
+const themeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
 
 bootstrap().catch(error => {
 	console.error(error)
@@ -54,11 +68,13 @@ bootstrap().catch(error => {
 })
 
 async function bootstrap() {
+	initTheme()
 	bindEvents()
 	const tasks = []
 
 	if (elements.contactsForm) {
 		tasks.push(refreshContacts())
+		tasks.push(refreshAdminMeta().catch(handleAdminMetaError))
 	}
 
 	if (hasVacancyUI()) {
@@ -79,6 +95,15 @@ function bindEvents() {
 
 	if (elements.logoutButton) {
 		elements.logoutButton.addEventListener('click', handleLogout)
+	}
+	if (elements.infoDockButton) {
+		elements.infoDockButton.addEventListener('click', toggleInfoPanel)
+	}
+	if (elements.themeSwitcher) {
+		elements.themeSwitcher.addEventListener('click', handleThemeSwitcherClick)
+	}
+	if (elements.themeSystemButton) {
+		elements.themeSystemButton.addEventListener('click', handleThemeSystemClick)
 	}
 
 	if (elements.confirmDeleteVacancyButton) {
@@ -129,6 +154,62 @@ async function refreshContacts() {
 		contacts.whatsapp || ''
 
 	await syncAdminMapFromContacts(contacts)
+}
+
+async function refreshAdminMeta() {
+	const response = await fetch('/api/admin/meta', {
+		credentials: 'same-origin',
+		headers: {
+			Accept: 'application/json',
+		},
+	})
+
+	if (!response.ok) {
+		throw new Error(`meta failed: ${response.status}`)
+	}
+
+	const contentType = response.headers.get('Content-Type') || ''
+	if (!contentType.includes('application/json')) {
+		throw new Error('meta response is not json')
+	}
+
+	const meta = await response.json()
+	state.adminMeta = meta
+
+	if (elements.serverVersionValue) {
+		elements.serverVersionValue.textContent = meta.version || 'unknown'
+	}
+	if (elements.serverGoVersionValue) {
+		elements.serverGoVersionValue.textContent = meta.goVersion || 'unknown'
+	}
+	if (elements.serverPlatformValue) {
+		elements.serverPlatformValue.textContent = meta.platform || 'unknown'
+	}
+	if (elements.serverOsValue) {
+		elements.serverOsValue.textContent = meta.osName || 'unknown'
+	}
+	if (elements.serverHostValue) {
+		elements.serverHostValue.textContent = meta.hostname || 'unknown'
+	}
+}
+
+function handleAdminMetaError(error) {
+	console.error(error)
+	if (elements.serverVersionValue) {
+		elements.serverVersionValue.textContent = 'Недоступно'
+	}
+	if (elements.serverGoVersionValue) {
+		elements.serverGoVersionValue.textContent = 'Недоступно'
+	}
+	if (elements.serverPlatformValue) {
+		elements.serverPlatformValue.textContent = 'Недоступно'
+	}
+	if (elements.serverOsValue) {
+		elements.serverOsValue.textContent = 'Недоступно'
+	}
+	if (elements.serverHostValue) {
+		elements.serverHostValue.textContent = 'Недоступно'
+	}
 }
 
 async function syncAdminMapFromContacts(contacts) {
@@ -457,6 +538,10 @@ async function handleVacancySubmit(event) {
 	if (event) {
 		event.preventDefault()
 	}
+	const submitButton =
+		event?.type === 'click' && event.currentTarget instanceof HTMLElement
+			? event.currentTarget
+			: elements.saveVacancyButton
 
 	const formData = new FormData(elements.vacancyForm)
 	const vacancyId = Number(formData.get('id') || 0)
@@ -474,6 +559,7 @@ async function handleVacancySubmit(event) {
 	}
 
 	elements.saveVacancyButton.disabled = true
+	setButtonLoading(submitButton, true)
 	setVacancyStatus(vacancyId ? 'Сохраняю вакансию...' : 'Создаю вакансию...')
 
 	try {
@@ -497,6 +583,7 @@ async function handleVacancySubmit(event) {
 		showToast(message, 'error')
 	} finally {
 		elements.saveVacancyButton.disabled = false
+		setButtonLoading(submitButton, false)
 	}
 }
 
@@ -593,6 +680,14 @@ function closeDeleteVacancyModal() {
 }
 
 function handleDocumentClick(event) {
+	if (
+		state.infoPanelOpen &&
+		!event.target.closest('#infoDockButton') &&
+		!event.target.closest('#infoDockPanel')
+	) {
+		closeInfoPanel()
+	}
+
 	if (event.target.closest('[data-close-delete-modal]')) {
 		closeDeleteVacancyModal()
 		return
@@ -604,6 +699,10 @@ function handleDocumentClick(event) {
 }
 
 function handleDocumentKeydown(event) {
+	if (event.key === 'Escape' && state.infoPanelOpen) {
+		closeInfoPanel()
+	}
+
 	if (event.key === 'Escape' && !elements.deleteVacancyModal?.hidden) {
 		closeDeleteVacancyModal()
 		return
@@ -659,6 +758,10 @@ function syncModalState() {
 }
 
 async function handleRestoreVacancy(id) {
+	const restoreButton = document.querySelector(
+		`[data-trash-action="restore"][data-id="${id}"]`
+	)
+	setButtonLoading(restoreButton, true)
 	setVacancyStatus('Восстанавливаю вакансию...')
 
 	try {
@@ -671,15 +774,27 @@ async function handleRestoreVacancy(id) {
 		const message = getErrorMessage(error, 'Не удалось восстановить вакансию.')
 		setVacancyStatus(message, true)
 		showToast(message, 'error')
+	} finally {
+		setButtonLoading(restoreButton, false)
 	}
 }
 
 async function moveVacancy(id, direction) {
+	const button = document.querySelector(
+		`[data-action="${direction < 0 ? 'move-up' : 'move-down'}"][data-id="${id}"]`
+	)
+	setButtonLoading(button, true)
 	const currentIndex = state.vacancies.findIndex(vacancy => vacancy.id === id)
-	if (currentIndex === -1) return
+	if (currentIndex === -1) {
+		setButtonLoading(button, false)
+		return
+	}
 
 	const nextIndex = currentIndex + direction
-	if (nextIndex < 0 || nextIndex >= state.vacancies.length) return
+	if (nextIndex < 0 || nextIndex >= state.vacancies.length) {
+		setButtonLoading(button, false)
+		return
+	}
 
 	const nextVacancies = [...state.vacancies]
 	;[nextVacancies[currentIndex], nextVacancies[nextIndex]] = [
@@ -709,6 +824,8 @@ async function moveVacancy(id, direction) {
 		const message = getErrorMessage(error, 'Не удалось изменить порядок вакансий.')
 		setVacancyStatus(message, true)
 		showToast(message, 'error')
+	} finally {
+		setButtonLoading(button, false)
 	}
 }
 
@@ -808,9 +925,14 @@ async function handleContactsSubmit(event) {
 	if (event) {
 		event.preventDefault()
 	}
+	const submitButton =
+		event?.type === 'click' && event.currentTarget instanceof HTMLElement
+			? event.currentTarget
+			: elements.saveButton
 	const formData = new FormData(elements.contactsForm)
 
 	elements.saveButton.disabled = true
+	setButtonLoading(submitButton, true)
 	setStatus('Сохраняю...')
 
 	try {
@@ -842,13 +964,16 @@ async function handleContactsSubmit(event) {
 		showToast(message, 'error')
 	} finally {
 		elements.saveButton.disabled = false
+		setButtonLoading(submitButton, false)
 	}
 }
 
 async function handleLogout() {
+	setButtonLoading(elements.logoutButton, true)
 	try {
 		await api('/admin/logout', { method: 'POST' }, false)
 	} finally {
+		setButtonLoading(elements.logoutButton, false)
 		window.location.href = '/admin/login'
 	}
 }
@@ -884,6 +1009,87 @@ async function api(url, options = {}, expectJson = true) {
 
 function readText(value) {
 	return String(value ?? '').trim()
+}
+
+function setButtonLoading(button, isLoading) {
+	if (!(button instanceof HTMLElement)) return
+
+	button.classList.toggle('is-loading', isLoading)
+}
+
+function initTheme() {
+	applyTheme(state.themeMode)
+	updateThemeSwitcherUI()
+	themeMediaQuery.addEventListener('change', handleSystemThemeChange)
+}
+
+function handleSystemThemeChange() {
+	if (state.themeMode !== 'system') return
+	applyTheme('system')
+}
+
+function applyTheme(mode) {
+	state.themeMode = mode
+	const resolved =
+		mode === 'system'
+			? themeMediaQuery.matches
+				? 'dark'
+				: 'light'
+			: mode
+
+	document.documentElement.dataset.themeMode = mode
+	document.documentElement.dataset.theme = resolved
+	document.documentElement.style.colorScheme = resolved
+	localStorage.setItem('admin-theme-mode', mode)
+	updateThemeSwitcherUI()
+}
+
+function updateThemeSwitcherUI() {
+	if (!elements.themeSwitcher) return
+
+	elements.themeSwitcher.querySelectorAll('[data-theme-mode]').forEach(button => {
+		button.classList.toggle('is-active', button.dataset.themeMode === state.themeMode)
+	})
+
+	if (elements.themeSystemButton) {
+		elements.themeSystemButton.classList.toggle('is-active', state.themeMode === 'system')
+	}
+}
+
+function handleThemeSwitcherClick(event) {
+	const button = event.target.closest('[data-theme-mode]')
+	if (!button) return
+
+	applyTheme(button.dataset.themeMode || 'system')
+}
+
+function handleThemeSystemClick() {
+	applyTheme('system')
+}
+
+function toggleInfoPanel() {
+	if (state.infoPanelOpen) {
+		closeInfoPanel()
+		return
+	}
+
+	openInfoPanel()
+}
+
+function openInfoPanel() {
+	if (!elements.infoDockPanel || !elements.infoDockButton) return
+
+	state.infoPanelOpen = true
+	elements.infoDockPanel.hidden = false
+	elements.infoDockButton.setAttribute('aria-expanded', 'true')
+}
+
+function closeInfoPanel() {
+	if (!elements.infoDockPanel || !elements.infoDockButton) return
+
+	state.infoPanelOpen = false
+	elements.infoDockPanel.hidden = true
+	elements.infoDockButton.setAttribute('aria-expanded', 'false')
 }
 
 function buildMapURL(latitude, longitude) {

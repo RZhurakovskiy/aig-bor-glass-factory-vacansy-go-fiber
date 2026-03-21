@@ -34,6 +34,7 @@ func registerRoutes(app *fiber.App, db *gorm.DB, staticHTTPFS http.FileSystem, s
 	adminAPI.Delete("/vacancies/:id", h.DeleteVacancy)
 	adminAPI.Delete("/vacancies/:id/permanent", h.PurgeVacancy)
 	adminAPI.Delete("/vacancies/trash", h.EmptyTrashVacancies)
+	adminAPI.Get("/meta", h.GetAdminMeta)
 	adminAPI.Get("/contacts", h.GetContacts)
 	adminAPI.Put("/contacts", h.UpdateContacts)
 
