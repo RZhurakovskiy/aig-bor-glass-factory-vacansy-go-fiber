@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 	initActiveNavHighlight()
 	initScrollReveal()
 	initScrollProgress()
+	initBackToTop()
 	initCookieConsent()
 	preloader.setProgress(25, 'Инициализируем интерфейс')
 
@@ -324,7 +325,7 @@ function initActiveNavHighlight() {
 	const nav = document.querySelector('.nav-bar')
 	if (!nav) return
 
-	const opts = { root: null, rootMargin: '0px 0px -50% 0px', threshold: 0.0 }
+	const opts = { root: null, rootMargin: '-10% 0px -55% 0px', threshold: [0.15, 0.4] }
 	const observer = new IntersectionObserver(entries => {
 		entries.forEach(entry => {
 			const item = sections.find(section => section.id === `#${entry.target.id}`)
@@ -377,6 +378,27 @@ function initScrollProgress() {
 	update()
 	window.addEventListener('scroll', update, { passive: true })
 	window.addEventListener('resize', update)
+}
+
+function initBackToTop() {
+	const button = document.getElementById('backToTop')
+	if (!button) return
+
+	const toggle = () => {
+		const scrollTop = window.pageYOffset || document.documentElement.scrollTop
+		button.hidden = scrollTop < 420
+		button.classList.toggle('is-visible', scrollTop >= 420)
+	}
+
+	button.addEventListener('click', () => {
+		window.scrollTo({
+			top: 0,
+			behavior: 'smooth',
+		})
+	})
+
+	toggle()
+	window.addEventListener('scroll', toggle, { passive: true })
 }
 
 function initCookieConsent() {
