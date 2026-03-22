@@ -84,6 +84,11 @@ body {
 	min-height: 100%;
 }
 
+html {
+	overflow-y: scroll;
+	scrollbar-gutter: stable;
+}
+
 body.admin-body {
 	margin: 0;
 	font-family: var(--admin-font);
@@ -1053,6 +1058,10 @@ select.admin-input {
 
 .admin-modal__dialog_wide {
 	width: min(100%, 860px);
+	max-height: min(820px, calc(100vh - 40px));
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
 }
 
 .admin-modal__title {
@@ -1073,6 +1082,21 @@ select.admin-input {
 	gap: 12px;
 	justify-content: flex-start;
 	margin-top: 20px;
+}
+
+#trashModal .admin-section__header {
+	flex: 0 0 auto;
+}
+
+#trashModal #trashEmpty {
+	flex: 0 0 auto;
+}
+
+#trashModal #trashVacanciesList {
+	flex: 1 1 auto;
+	min-height: 0;
+	overflow-y: auto;
+	padding-right: 6px;
 }
 
 .admin-toast-stack {

@@ -1088,8 +1088,8 @@ function closeDeleteVacancyModal() {
 			elements.deleteVacancyTitle.textContent = 'Удалить вакансию?'
 		}
 		elements.confirmDeleteVacancyButton.textContent = 'Удалить'
+		syncModalState()
 	})
-	syncModalState()
 }
 
 function handleDocumentClick(event) {
@@ -1137,8 +1137,8 @@ function handleDocumentKeydown(event) {
 }
 
 async function handleOpenTrash() {
-	openTrashModal()
 	await refreshTrashVacancies()
+	openTrashModal()
 }
 
 function openTrashModal() {
@@ -1151,8 +1151,9 @@ function openTrashModal() {
 function closeTrashModal() {
 	if (!elements.trashModal) return
 
-	closeModal(elements.trashModal)
-	syncModalState()
+	closeModal(elements.trashModal, () => {
+		syncModalState()
+	})
 }
 
 function handleEmptyTrashClick() {
@@ -1202,8 +1203,9 @@ function closeResetVacancyModal() {
 	if (!elements.resetVacancyModal) return
 
 	state.pendingVacancyReset = false
-	closeModal(elements.resetVacancyModal)
-	syncModalState()
+	closeModal(elements.resetVacancyModal, () => {
+		syncModalState()
+	})
 }
 
 function openModal(modal) {
@@ -1214,15 +1216,34 @@ function openModal(modal) {
 		delete modal.dataset.closeTimer
 	}
 
+	if (modal.dataset.openRaf) {
+		window.cancelAnimationFrame(Number(modal.dataset.openRaf))
+		delete modal.dataset.openRaf
+	}
+
 	modal.hidden = false
 	modal.classList.remove('is-closing')
-	requestAnimationFrame(() => {
-		modal.classList.add('is-open')
-	})
+	modal.classList.remove('is-open')
+	void modal.offsetHeight
+	modal.dataset.openRaf = String(
+		window.requestAnimationFrame(() => {
+			modal.dataset.openRaf = String(
+				window.requestAnimationFrame(() => {
+					modal.classList.add('is-open')
+					delete modal.dataset.openRaf
+				})
+			)
+		})
+	)
 }
 
 function closeModal(modal, onClosed) {
 	if (!modal || modal.hidden) return
+
+	if (modal.dataset.openRaf) {
+		window.cancelAnimationFrame(Number(modal.dataset.openRaf))
+		delete modal.dataset.openRaf
+	}
 
 	modal.classList.remove('is-open')
 	modal.classList.add('is-closing')

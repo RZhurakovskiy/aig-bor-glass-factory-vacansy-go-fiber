@@ -243,9 +243,13 @@ function renderVacancyColumn(title, items) {
 	return `
 		<div class="vacancy-card__description-item">
 			<h4>${title}</h4>
-			<ul class="vacancy-card__description-list">
+			${
+				safeItems.length
+					? `<ul class="vacancy-card__description-list">
 				${safeItems.map(item => `<li>${escapeHtml(item)}</li>`).join('')}
-			</ul>
+			</ul>`
+					: '<p class="vacancy-card__description-empty">Данных нет</p>'
+			}
 		</div>
 	`
 }
