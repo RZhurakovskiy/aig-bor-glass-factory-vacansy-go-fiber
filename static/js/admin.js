@@ -944,7 +944,7 @@ async function handleVacancySubmit(event) {
 			}
 		)
 
-		state.selectedVacancyId = vacancy.id
+		state.selectedVacancyId = vacancyId ? vacancy.id : null
 		await refreshVacancies()
 		const message = vacancyId ? 'Вакансия сохранена.' : 'Вакансия создана.'
 		setVacancyStatus(message)

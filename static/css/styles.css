@@ -345,9 +345,9 @@ body {
 .header-content__button-vacancy {
 	background: linear-gradient(
 		135deg,
-		rgba(190, 24, 24, 0.84) 0%,
-		rgba(148, 14, 14, 0.8) 48%,
-		rgba(106, 9, 9, 0.86) 100%
+		rgba(214, 34, 34, 0.92) 0%,
+		rgba(176, 19, 19, 0.9) 46%,
+		rgba(126, 11, 11, 0.92) 100%
 	);
 	border-color: rgba(255, 255, 255, 0.18);
 	margin-right: 18px;
@@ -364,13 +364,13 @@ body {
 	background: linear-gradient(
 		110deg,
 		transparent 0%,
-		rgba(255, 255, 255, 0.05) 32%,
-		rgba(255, 255, 255, 0.3) 50%,
-		rgba(255, 255, 255, 0.05) 68%,
+		rgba(255, 255, 255, 0.07) 30%,
+		rgba(255, 255, 255, 0.36) 50%,
+		rgba(255, 255, 255, 0.07) 70%,
 		transparent 100%
 	);
 	transform: translateX(-160%);
-	animation: vacancy-button-glass-sheen 5s ease-in-out infinite;
+	animation: vacancy-button-glass-sheen 3s ease-in-out infinite;
 	z-index: -1;
 }
 

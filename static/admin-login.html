@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ru">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Вход в панель администратора</title>
+		<link
+			rel="icon"
+			type="image/png"
+			href="/img/favicons/favicon-96x96.png"
+			sizes="96x96"
+		/>
+		<link rel="icon" type="image/svg+xml" href="/img/favicons/favicon.svg" />
+		<link rel="shortcut icon" href="/img/favicons/favicon.ico" />
+		<link
+			rel="apple-touch-icon"
+			sizes="180x180"
+			href="/img/favicons/apple-touch-icon.png"
+		/>
+		<script>
+			;(() => {
+				const storageKey = 'admin-theme-mode'
+				const root = document.documentElement
+				const mode = localStorage.getItem(storageKey) || 'light'
+				const prefersDark = window.matchMedia(
+					'(prefers-color-scheme: dark)'
+				).matches
+				const resolved =
+					mode === 'system' ? (prefersDark ? 'dark' : 'light') : mode
+				root.dataset.themeMode = mode
+				root.dataset.theme = resolved
+				root.style.colorScheme = resolved
+			})()
+		</script>
+		<link rel="stylesheet" href="/css/admin-login.css" />
+	</head>
+	<body class="login-body">
+		<div class="login-toast-stack" id="loginToastStack" aria-live="polite" aria-atomic="true"></div>
+
+		<main class="login-layout">
+			<form class="login-card" id="loginForm" method="post" action="/admin/login" novalidate>
+				<div class="login-card__eyebrow">Панель управления сайтом</div>
+				<h1 class="login-card__title">Вход в систему</h1>
+				<p class="login-card__subtitle">
+					Используйте логин и пароль своей учетной записи.
+				</p>
+
+				<label class="login-field">
+					<span class="login-field__label">Логин</span>
+					<input class="login-input" type="text" name="login" autocomplete="username" required />
+				</label>
+
+				<label class="login-field">
+					<span class="login-field__label">Пароль</span>
+					<div class="login-password-field">
+						<input
+							class="login-input"
+							id="loginPasswordInput"
+							type="password"
+							name="password"
+							autocomplete="current-password"
+							required
+						/>
+						<button
+							class="login-password-toggle"
+							id="loginPasswordToggle"
+							type="button"
+							aria-label="Показать пароль"
+							aria-pressed="false"
+						>
+							<svg class="login-password-toggle__icon-on" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+								<path d="M1.75 10C3.32 6.83 6.34 4.75 10 4.75C13.66 4.75 16.68 6.83 18.25 10C16.68 13.17 13.66 15.25 10 15.25C6.34 15.25 3.32 13.17 1.75 10Z" stroke="currentColor" stroke-width="1.5"/>
+								<circle cx="10" cy="10" r="2.5" stroke="currentColor" stroke-width="1.5"/>
+							</svg>
+							<svg class="login-password-toggle__icon-off" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+								<path d="M2.5 2.5L17.5 17.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+								<path d="M8.94 5.02C9.29 4.84 9.64 4.75 10 4.75C13.66 4.75 16.68 6.83 18.25 10C17.62 11.28 16.72 12.38 15.62 13.2M11.77 11.77C11.32 12.22 10.68 12.5 10 12.5C8.62 12.5 7.5 11.38 7.5 10C7.5 9.32 7.78 8.68 8.23 8.23M5.18 5.18C3.75 6.09 2.57 7.42 1.75 10C3.32 13.17 6.34 15.25 10 15.25C10.95 15.25 11.84 15.11 12.67 14.84" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+							</svg>
+						</button>
+					</div>
+				</label>
+
+				<div class="login-status" id="loginStatus"></div>
+				<button class="login-submit" type="submit" id="loginSubmitButton">
+					Войти
+				</button>
+			</form>
+		</main>
+
+		<div class="login-info-dock">
+			<button
+				class="login-info-dock__button"
+				id="loginInfoDockButton"
+				type="button"
+				aria-expanded="false"
+				aria-controls="loginInfoDockPanel"
+				aria-label="Информация и тема"
+			>
+				i
+			</button>
+			<section class="login-info-panel" id="loginInfoDockPanel" hidden>
+				<div class="login-info-panel__header">
+					<h2 class="login-info-panel__title">Информация</h2>
+				</div>
+				<div class="login-info-panel__meta">
+					<div class="login-info-panel__row">
+						<span class="login-info-panel__label">Версия сервера</span>
+						<span class="login-info-panel__value" id="serverVersionValue">Загрузка...</span>
+					</div>
+					<div class="login-info-panel__row">
+						<span class="login-info-panel__label">Go runtime</span>
+						<span class="login-info-panel__value login-info-panel__value_code" id="serverGoVersionValue">Загрузка...</span>
+					</div>
+					<div class="login-info-panel__row">
+						<span class="login-info-panel__label">Платформа</span>
+						<span class="login-info-panel__value login-info-panel__value_code" id="serverPlatformValue">Загрузка...</span>
+					</div>
+					<div class="login-info-panel__row">
+						<span class="login-info-panel__label">Система</span>
+						<span class="login-info-panel__value" id="serverOsValue">Загрузка...</span>
+					</div>
+					<div class="login-info-panel__row">
+						<span class="login-info-panel__label">Хост</span>
+						<span class="login-info-panel__value login-info-panel__value_code" id="serverHostValue">Загрузка...</span>
+					</div>
+				</div>
+				<div class="login-info-panel__group">
+					<div class="login-info-panel__label">Тема</div>
+					<div class="login-theme-switcher" id="themeSwitcher">
+						<button class="login-theme-switcher__button" data-theme-mode="light" type="button">
+							Светлая
+						</button>
+						<button class="login-theme-switcher__button" data-theme-mode="dark" type="button">
+							Тёмная
+						</button>
+					</div>
+					<button class="login-theme-system-button" id="themeSystemButton" type="button">
+						Системная тема
+					</button>
+				</div>
+			</section>
+		</div>
+
+		<script src="/js/admin-login.js"></script>
+	</body>
+</html>

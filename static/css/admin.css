@@ -48,12 +48,7 @@
 	--admin-accent: #f3f4f6;
 	--admin-accent-soft: rgba(243, 244, 246, 0.18);
 	--admin-topbar-border: #3a4558;
-	--admin-topbar-bg: linear-gradient(
-			135deg,
-			rgba(255, 255, 255, 0.06) 0%,
-			rgba(255, 255, 255, 0) 46%
-		),
-		#111827;
+	--admin-topbar-bg: #111827;
 	--admin-topbar-title: #ffffff;
 	--admin-topbar-muted: rgba(255, 255, 255, 0.72);
 	--admin-topbar-chip-border: rgba(255, 255, 255, 0.14);
@@ -62,12 +57,7 @@
 	--admin-shadow: 0 18px 42px rgba(0, 0, 0, 0.24);
 	--admin-card-shadow: 0 8px 18px rgba(0, 0, 0, 0.14);
 	--admin-overlay: rgba(2, 6, 23, 0.62);
-	--admin-map-bg: linear-gradient(
-			180deg,
-			rgba(255, 255, 255, 0.02) 0%,
-			rgba(255, 255, 255, 0.01) 100%
-		),
-		#0f1722;
+	--admin-map-bg: #0f1722;
 	--admin-toggle-off: #475467;
 	--admin-count-bg: rgba(255, 255, 255, 0.12);
 	--admin-count-bg-hover: rgba(255, 255, 255, 0.18);
@@ -102,12 +92,7 @@ body.admin-body {
 }
 
 :root[data-theme="dark"] body.admin-body {
-	background: radial-gradient(
-			circle at top left,
-			rgba(255, 255, 255, 0.05),
-			transparent 24%
-		),
-		linear-gradient(180deg, #111827 0%, var(--admin-bg) 100%);
+	background: var(--admin-bg);
 }
 
 body.admin-modal-open {
@@ -537,10 +522,6 @@ body.admin-modal-open {
 	width: 100%;
 }
 
-.admin-metric-day__segment + .admin-metric-day__segment {
-	margin-top: 2px; /* subtle separation between stacked segments */
-	border-top: 1px solid rgba(255, 255, 255, 0.55);
-}
 
 .admin-vacancy-card {
 	flex-direction: column;
@@ -734,6 +715,18 @@ body.admin-modal-open {
 	display: grid;
 	gap: 8px;
 	min-width: 0;
+}
+
+.admin-detail-group {
+	padding: 14px;
+	border: 1px solid var(--admin-border);
+	border-radius: 12px;
+	background: var(--admin-surface);
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+:root[data-theme="dark"] .admin-detail-group {
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .admin-field__head {
