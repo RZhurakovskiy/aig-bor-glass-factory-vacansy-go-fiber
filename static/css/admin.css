@@ -210,8 +210,7 @@ body.admin-modal-open {
 	top: 24px;
 	display: grid;
 	gap: 16px;
-	padding: 10px 22px 10px 0;
-	border-right: 1px solid var(--admin-border);
+	padding: 10px 12px 10px 0;
 }
 
 .admin-sidebar__label {
@@ -251,6 +250,8 @@ body.admin-modal-open {
 	border-color: #2d2d2d;
 	background: #2d2d2d;
 	color: #ffffff;
+	box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+		0 12px 24px rgba(17, 24, 39, 0.12);
 }
 
 :root[data-theme="dark"] .admin-sidebar__link.is-active {
@@ -1102,6 +1103,7 @@ select.admin-input {
 
 #trashModal .admin-section__header {
 	flex: 0 0 auto;
+	margin-top: -2px;
 }
 
 #trashModal #trashEmpty {

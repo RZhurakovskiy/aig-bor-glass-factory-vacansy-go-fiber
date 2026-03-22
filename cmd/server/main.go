@@ -3,10 +3,12 @@ package main
 import (
 	"crypto/rand"
 	"encoding/base64"
+	"fmt"
 	"io/fs"
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	assets "glass-factory"
@@ -67,28 +69,6 @@ func seedDatabase(db *gorm.DB) error {
 		}
 	}
 
-	var userCount int64
-	if err := db.Model(&models.AdminUser{}).Count(&userCount).Error; err != nil {
-		return err
-	}
-	if userCount == 0 {
-		hash, err := bcrypt.GenerateFromPassword([]byte("Admin12345"), bcrypt.DefaultCost)
-		if err != nil {
-			return err
-		}
-
-		adminUser := models.AdminUser{
-			Login:        models.BootstrapAdminLogin,
-			PasswordHash: string(hash),
-			Role:         models.AdminUserRoleHR,
-			Active:       true,
-			IsRoot:       true,
-		}
-		if err := db.Create(&adminUser).Error; err != nil {
-			return err
-		}
-	}
-
 	var bootstrapUser models.AdminUser
 	err := db.Where("login = ?", models.BootstrapAdminLogin).First(&bootstrapUser).Error
 	if err != nil {
@@ -96,7 +76,12 @@ func seedDatabase(db *gorm.DB) error {
 			return err
 		}
 
-		hash, hashErr := bcrypt.GenerateFromPassword([]byte("Admin12345"), bcrypt.DefaultCost)
+		bootstrapPassword := strings.TrimSpace(os.Getenv("BOOTSTRAP_ADMIN_PASSWORD"))
+		if bootstrapPassword == "" {
+			return fmt.Errorf("не задана переменная окружения BOOTSTRAP_ADMIN_PASSWORD для создания главного администратора")
+		}
+
+		hash, hashErr := bcrypt.GenerateFromPassword([]byte(bootstrapPassword), bcrypt.DefaultCost)
 		if hashErr != nil {
 			return hashErr
 		}

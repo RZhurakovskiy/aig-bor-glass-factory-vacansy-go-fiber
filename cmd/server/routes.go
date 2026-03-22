@@ -109,11 +109,20 @@ func serveLoginPage(c *fiber.Ctx) error {
 		h1 { margin-top: 0; margin-bottom: 12px; font-size: 32px; }
 		p { margin: 0; line-height: 1.5; color: var(--login-muted); }
 		label { display: grid; gap: 8px; margin: 20px 0 18px; font-weight: 700; }
+		.login-password-field { position: relative; display: grid; }
 		input { padding: 14px 16px; border-radius: 10px; border: 1px solid var(--login-input-border); background: var(--login-input-bg); color: var(--login-text); font-size: 16px; }
+		.login-password-field input { padding-right: 52px; }
 		input:focus { outline: none; border-color: rgba(112,136,150,0.55); box-shadow: 0 0 0 3px rgba(112,136,150,0.16); }
 		button { width: 100%; padding: 14px 16px; border: 0; border-radius: 10px; background: #708896; color: #fff; font-size: 16px; font-weight: 700; cursor: pointer; transition: opacity 0.18s ease, transform 0.18s ease; }
 		button:hover { opacity: 0.92; }
 		button:disabled { opacity: 0.7; cursor: wait; }
+		.login-password-toggle { position: absolute; top: 50%; right: 8px; width: 36px; height: 36px; padding: 0; border: 0; border-radius: 8px; background: transparent; color: var(--login-muted); transform: translateY(-50%); display: inline-flex; align-items: center; justify-content: center; }
+		.login-password-toggle:hover { opacity: 1; background: rgba(112,136,150,0.1); color: var(--login-text); }
+		.login-password-toggle:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(112,136,150,0.16); }
+		.login-password-toggle svg { width: 18px; height: 18px; display: block; }
+		.login-password-toggle .login-password-toggle__icon-off { display: none; }
+		.login-password-toggle.is-visible .login-password-toggle__icon-on { display: none; }
+		.login-password-toggle.is-visible .login-password-toggle__icon-off { display: block; }
 		.login-status { min-height: 22px; margin-top: 8px; font-size: 14px; color: var(--login-muted); }
 		.login-status.is-error { color: #d92d20; }
 		.login-toast-stack { position: fixed; top: 20px; right: 20px; z-index: 20; display: grid; gap: 10px; width: min(360px, calc(100vw - 32px)); }
@@ -137,7 +146,25 @@ func serveLoginPage(c *fiber.Ctx) error {
 		</label>
 		<label>
 			<span>Пароль</span>
-			<input type="password" name="password" autocomplete="current-password" required />
+			<div class="login-password-field">
+				<input id="loginPasswordInput" type="password" name="password" autocomplete="current-password" required />
+				<button
+					class="login-password-toggle"
+					id="loginPasswordToggle"
+					type="button"
+					aria-label="Показать пароль"
+					aria-pressed="false"
+				>
+					<svg class="login-password-toggle__icon-on" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+						<path d="M1.75 10C3.32 6.83 6.34 4.75 10 4.75C13.66 4.75 16.68 6.83 18.25 10C16.68 13.17 13.66 15.25 10 15.25C6.34 15.25 3.32 13.17 1.75 10Z" stroke="currentColor" stroke-width="1.5"/>
+						<circle cx="10" cy="10" r="2.5" stroke="currentColor" stroke-width="1.5"/>
+					</svg>
+					<svg class="login-password-toggle__icon-off" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+						<path d="M2.5 2.5L17.5 17.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+						<path d="M8.94 5.02C9.29 4.84 9.64 4.75 10 4.75C13.66 4.75 16.68 6.83 18.25 10C17.62 11.28 16.72 12.38 15.62 13.2M11.77 11.77C11.32 12.22 10.68 12.5 10 12.5C8.62 12.5 7.5 11.38 7.5 10C7.5 9.32 7.78 8.68 8.23 8.23M5.18 5.18C3.75 6.09 2.57 7.42 1.75 10C3.32 13.17 6.34 15.25 10 15.25C10.95 15.25 11.84 15.11 12.67 14.84" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+					</svg>
+				</button>
+			</div>
 		</label>
 		<div class="login-status" id="loginStatus"></div>
 		<button type="submit" id="loginSubmitButton">Войти</button>
@@ -148,6 +175,8 @@ func serveLoginPage(c *fiber.Ctx) error {
 			const status = document.getElementById('loginStatus')
 			const submitButton = document.getElementById('loginSubmitButton')
 			const toastStack = document.getElementById('loginToastStack')
+			const passwordInput = document.getElementById('loginPasswordInput')
+			const passwordToggle = document.getElementById('loginPasswordToggle')
 
 			function setStatus(message, isError) {
 				if (!status) return
@@ -167,6 +196,19 @@ func serveLoginPage(c *fiber.Ctx) error {
 					window.setTimeout(() => toast.remove(), 240)
 				}, duration)
 			}
+
+			passwordToggle?.addEventListener('click', () => {
+				if (!passwordInput) return
+
+				const isVisible = passwordInput.type === 'text'
+				passwordInput.type = isVisible ? 'password' : 'text'
+				passwordToggle.classList.toggle('is-visible', !isVisible)
+				passwordToggle.setAttribute('aria-pressed', isVisible ? 'false' : 'true')
+				passwordToggle.setAttribute(
+					'aria-label',
+					isVisible ? 'Показать пароль' : 'Скрыть пароль'
+				)
+			})
 
 			form?.addEventListener('submit', async (event) => {
 				event.preventDefault()
