@@ -91,18 +91,6 @@ func serveLoginPage(c *fiber.Ctx) error {
 	<meta charset="UTF-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 	<title>Вход в панель администратора</title>
-	<script>
-		;(() => {
-			const storageKey = 'admin-theme-mode'
-			const root = document.documentElement
-			const mode = localStorage.getItem(storageKey) || 'light'
-			const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-			const resolved = mode === 'system' ? (prefersDark ? 'dark' : 'light') : mode
-			root.dataset.themeMode = mode
-			root.dataset.theme = resolved
-			root.style.colorScheme = resolved
-		})()
-	</script>
 	<style>
 		:root {
 			color-scheme: light;
@@ -113,22 +101,7 @@ func serveLoginPage(c *fiber.Ctx) error {
 			--login-card-border: rgba(17,24,39,0.08);
 			--login-input-bg: rgba(255,255,255,0.98);
 			--login-input-border: rgba(17,24,39,0.12);
-			--login-panel-bg: rgba(255,255,255,0.84);
-			--login-panel-border: rgba(17,24,39,0.1);
 			--login-shadow: 0 24px 60px rgba(15,23,42,0.12);
-		}
-		:root[data-theme="dark"] {
-			color-scheme: dark;
-			--login-bg: linear-gradient(135deg, #111, #303030);
-			--login-text: #fff;
-			--login-muted: rgba(255,255,255,0.76);
-			--login-card-bg: rgba(255,255,255,0.08);
-			--login-card-border: rgba(255,255,255,0.08);
-			--login-input-bg: rgba(69,76,94,0.92);
-			--login-input-border: rgba(255,255,255,0.14);
-			--login-panel-bg: rgba(34,34,34,0.84);
-			--login-panel-border: rgba(255,255,255,0.08);
-			--login-shadow: 0 24px 60px rgba(0,0,0,0.28);
 		}
 		* { box-sizing: border-box; }
 		body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif; min-height: 100vh; display: grid; place-items: center; background: var(--login-bg); color: var(--login-text); transition: background 0.22s ease, color 0.22s ease; }
@@ -138,7 +111,7 @@ func serveLoginPage(c *fiber.Ctx) error {
 		label { display: grid; gap: 8px; margin: 20px 0 18px; font-weight: 700; }
 		input { padding: 14px 16px; border-radius: 10px; border: 1px solid var(--login-input-border); background: var(--login-input-bg); color: var(--login-text); font-size: 16px; }
 		input:focus { outline: none; border-color: rgba(112,136,150,0.55); box-shadow: 0 0 0 3px rgba(112,136,150,0.16); }
-		button { width: 100%; padding: 14px 16px; border: 0; border-radius: 10px; background: #ec0000; color: #fff; font-size: 16px; font-weight: 700; cursor: pointer; transition: opacity 0.18s ease, transform 0.18s ease; }
+		button { width: 100%; padding: 14px 16px; border: 0; border-radius: 10px; background: #708896; color: #fff; font-size: 16px; font-weight: 700; cursor: pointer; transition: opacity 0.18s ease, transform 0.18s ease; }
 		button:hover { opacity: 0.92; }
 		button:disabled { opacity: 0.7; cursor: wait; }
 		.login-status { min-height: 22px; margin-top: 8px; font-size: 14px; color: var(--login-muted); }
@@ -148,58 +121,6 @@ func serveLoginPage(c *fiber.Ctx) error {
 		.login-toast::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 4px; background: rgba(255,255,255,0.34); transform-origin: left center; animation: login-toast-progress var(--toast-duration, 3200ms) linear forwards; }
 		.login-toast_error { color: #fff; border-color: #b42318; background: #d92d20; }
 		.login-toast.is-leaving { animation: login-toast-out 0.24s ease forwards; }
-		.login-theme-dock { position: fixed; left: 16px; bottom: 16px; z-index: 20; display: grid; gap: 10px; justify-items: start; }
-		.login-theme-button {
-			width: 46px;
-			height: 46px;
-			padding: 0;
-			border-radius: 14px;
-			border: 1px solid var(--login-panel-border);
-			background: var(--login-panel-bg);
-			color: var(--login-text);
-			backdrop-filter: blur(16px);
-			box-shadow: 0 14px 34px rgba(15,23,42,0.12);
-			display: inline-grid;
-			place-items: center;
-			font-size: 22px;
-			line-height: 1;
-			font-weight: 700;
-		}
-		.login-theme-button:hover { opacity: 1; transform: translateY(-1px); }
-		.login-theme-panel {
-			width: min(220px, calc(100vw - 32px));
-			padding: 12px;
-			border-radius: 14px;
-			border: 1px solid var(--login-panel-border);
-			background: var(--login-panel-bg);
-			backdrop-filter: blur(16px);
-			box-shadow: 0 18px 42px rgba(15,23,42,0.14);
-			display: grid;
-			gap: 8px;
-			opacity: 0;
-			transform: translateY(8px);
-			transition: opacity 0.18s ease, transform 0.18s ease;
-		}
-		.login-theme-panel[hidden] { display: none; }
-		.login-theme-panel.is-open {
-			opacity: 1;
-			transform: translateY(0);
-		}
-		.login-theme-option {
-			width: 100%;
-			padding: 10px 12px;
-			border-radius: 10px;
-			border: 1px solid transparent;
-			background: transparent;
-			color: var(--login-text);
-			text-align: left;
-			font-size: 14px;
-			font-weight: 700;
-		}
-		.login-theme-option.is-active {
-			border-color: rgba(112,136,150,0.2);
-			background: rgba(112,136,150,0.12);
-		}
 		@keyframes login-toast-in { from { opacity: 0; transform: translate3d(18px, -12px, 0) scale(0.98); } to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); } }
 		@keyframes login-toast-out { from { opacity: 1; transform: translate3d(0, 0, 0) scale(1); } to { opacity: 0; transform: translate3d(20px, -8px, 0) scale(0.98); } }
 		@keyframes login-toast-progress { from { transform: scaleX(1); } to { transform: scaleX(0); } }
@@ -221,57 +142,12 @@ func serveLoginPage(c *fiber.Ctx) error {
 		<div class="login-status" id="loginStatus"></div>
 		<button type="submit" id="loginSubmitButton">Войти</button>
 	</form>
-	<div class="login-theme-dock">
-		<div class="login-theme-panel" id="loginThemePanel" hidden>
-			<button class="login-theme-option" data-theme-mode="light" type="button">Светлая тема</button>
-			<button class="login-theme-option" data-theme-mode="dark" type="button">Темная тема</button>
-			<button class="login-theme-option" data-theme-mode="system" type="button">Как в системе</button>
-		</div>
-		<button class="login-theme-button" id="loginThemeButton" type="button" aria-label="Сменить тему">i</button>
-	</div>
 	<script>
 		(() => {
-			const storageKey = 'admin-theme-mode'
-			const root = document.documentElement
 			const form = document.getElementById('loginForm')
 			const status = document.getElementById('loginStatus')
 			const submitButton = document.getElementById('loginSubmitButton')
 			const toastStack = document.getElementById('loginToastStack')
-			const themeButton = document.getElementById('loginThemeButton')
-			const themePanel = document.getElementById('loginThemePanel')
-			const themeOptions = Array.from(document.querySelectorAll('[data-theme-mode]'))
-
-			function resolveTheme(mode) {
-				const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-				return mode === 'system' ? (prefersDark ? 'dark' : 'light') : mode
-			}
-
-			function applyTheme(mode) {
-				const resolved = resolveTheme(mode)
-				root.dataset.themeMode = mode
-				root.dataset.theme = resolved
-				root.style.colorScheme = resolved
-				localStorage.setItem(storageKey, mode)
-				themeOptions.forEach((option) => {
-					option.classList.toggle('is-active', option.dataset.themeMode === mode)
-				})
-			}
-
-			function openThemePanel() {
-				if (!themePanel) return
-				themePanel.hidden = false
-				window.requestAnimationFrame(() => {
-					themePanel.classList.add('is-open')
-				})
-			}
-
-			function closeThemePanel() {
-				if (!themePanel || themePanel.hidden) return
-				themePanel.classList.remove('is-open')
-				window.setTimeout(() => {
-					themePanel.hidden = true
-				}, 180)
-			}
 
 			function setStatus(message, isError) {
 				if (!status) return
@@ -347,33 +223,6 @@ func serveLoginPage(c *fiber.Ctx) error {
 					}
 				}
 			})
-
-			themeButton?.addEventListener('click', () => {
-				if (!themePanel) return
-				if (themePanel.hidden) openThemePanel()
-				else closeThemePanel()
-			})
-
-			themeOptions.forEach((option) => {
-				option.addEventListener('click', () => {
-					applyTheme(option.dataset.themeMode || 'light')
-					closeThemePanel()
-				})
-			})
-
-			document.addEventListener('click', (event) => {
-				if (!themePanel || themePanel.hidden) return
-				if (event.target.closest('#loginThemeButton') || event.target.closest('#loginThemePanel')) return
-				closeThemePanel()
-			})
-
-			window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-				if ((root.dataset.themeMode || 'light') === 'system') {
-					applyTheme('system')
-				}
-			})
-
-			applyTheme(root.dataset.themeMode || 'light')
 		})()
 	</script>
 </body>
