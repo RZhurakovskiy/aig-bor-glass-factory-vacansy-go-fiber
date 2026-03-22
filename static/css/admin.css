@@ -666,6 +666,11 @@ body.admin-modal-open {
 	color: #475467;
 }
 
+.admin-badge_root {
+	background: rgba(112, 136, 150, 0.14);
+	color: #425560;
+}
+
 .admin-badge_editor {
 	margin-left: 8px;
 	padding: 5px 10px;
@@ -678,6 +683,11 @@ body.admin-modal-open {
 :root[data-theme="dark"] .admin-badge_editor {
 	background: #708896;
 	color: #ffffff;
+}
+
+:root[data-theme="dark"] .admin-badge_root {
+	background: rgba(112, 136, 150, 0.18);
+	color: #d9e2e7;
 }
 
 .admin-form {
@@ -981,6 +991,10 @@ select.admin-input {
 	display: grid;
 	place-items: center;
 	padding: 20px;
+	opacity: 0;
+	visibility: hidden;
+	pointer-events: none;
+	transition: opacity 0.22s ease, visibility 0.22s ease;
 }
 
 #trashModal {
@@ -1000,6 +1014,8 @@ select.admin-input {
 	inset: 0;
 	background: var(--admin-overlay);
 	backdrop-filter: blur(4px);
+	opacity: 0;
+	transition: opacity 0.22s ease;
 }
 
 .admin-modal__dialog {
@@ -1011,6 +1027,28 @@ select.admin-input {
 	border-radius: 14px;
 	background: var(--admin-surface);
 	box-shadow: 0 28px 64px rgba(15, 23, 42, 0.16);
+	opacity: 0;
+	transform: translateY(18px) scale(0.98);
+	transition: opacity 0.22s ease, transform 0.22s ease;
+}
+
+.admin-modal.is-open,
+.admin-modal.is-closing {
+	visibility: visible;
+}
+
+.admin-modal.is-open {
+	opacity: 1;
+	pointer-events: auto;
+}
+
+.admin-modal.is-open .admin-modal__backdrop {
+	opacity: 1;
+}
+
+.admin-modal.is-open .admin-modal__dialog {
+	opacity: 1;
+	transform: translateY(0) scale(1);
 }
 
 .admin-modal__dialog_wide {

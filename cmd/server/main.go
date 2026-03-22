@@ -83,10 +83,51 @@ func seedDatabase(db *gorm.DB) error {
 			PasswordHash: string(hash),
 			Role:         models.AdminUserRoleAdmin,
 			Active:       true,
+			IsRoot:       true,
 		}
 		if err := db.Create(&adminUser).Error; err != nil {
 			return err
 		}
+	}
+
+	var bootstrapUser models.AdminUser
+	err := db.Where("login = ?", models.BootstrapAdminLogin).First(&bootstrapUser).Error
+	if err != nil {
+		if err != gorm.ErrRecordNotFound {
+			return err
+		}
+
+		hash, hashErr := bcrypt.GenerateFromPassword([]byte("Admin12345"), bcrypt.DefaultCost)
+		if hashErr != nil {
+			return hashErr
+		}
+
+		bootstrapUser = models.AdminUser{
+			Login:        models.BootstrapAdminLogin,
+			PasswordHash: string(hash),
+			Role:         models.AdminUserRoleAdmin,
+			Active:       true,
+			IsRoot:       true,
+		}
+		if err := db.Create(&bootstrapUser).Error; err != nil {
+			return err
+		}
+	}
+
+	if err := db.Model(&models.AdminUser{}).
+		Where("login = ?", models.BootstrapAdminLogin).
+		Updates(map[string]any{
+			"is_root": true,
+			"role":    models.AdminUserRoleAdmin,
+			"active":  true,
+		}).Error; err != nil {
+		return err
+	}
+
+	if err := db.Model(&models.AdminUser{}).
+		Where("login <> ?", models.BootstrapAdminLogin).
+		Update("is_root", false).Error; err != nil {
+		return err
 	}
 
 	return nil

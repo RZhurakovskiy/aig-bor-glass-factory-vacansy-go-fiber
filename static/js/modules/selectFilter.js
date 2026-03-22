@@ -4,9 +4,9 @@ export function selectFilter() {
 
 	if (!selectElement || !contents.length) return
 
-	const initialJob = selectElement.value
+	const initialVacancyId = selectElement.value
 	contents.forEach(content => {
-		if (content.getAttribute('data-job') === initialJob) {
+		if (content.getAttribute('data-vacancy-id') === initialVacancyId) {
 			content.classList.add('active')
 		} else {
 			content.classList.remove('active')
@@ -14,10 +14,10 @@ export function selectFilter() {
 	})
 
 	selectElement.addEventListener('change', () => {
-		const selectedJob = selectElement.value
+		const selectedVacancyId = selectElement.value
 
 		contents.forEach(content => {
-			if (content.getAttribute('data-job') === selectedJob) {
+			if (content.getAttribute('data-vacancy-id') === selectedVacancyId) {
 				content.classList.add('active')
 			} else {
 				content.classList.remove('active')

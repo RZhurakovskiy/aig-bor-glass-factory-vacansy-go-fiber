@@ -15,6 +15,7 @@ type adminUserResponse struct {
 	Login     string `json:"login"`
 	Role      string `json:"role"`
 	Active    bool   `json:"active"`
+	IsRoot    bool   `json:"isRoot"`
 	CreatedAt string `json:"createdAt"`
 	UpdatedAt string `json:"updatedAt"`
 }
@@ -71,11 +72,13 @@ func (h *Handler) CreateAdminUser(c *fiber.Ctx) error {
 		PasswordHash: string(hash),
 		Role:         role,
 		Active:       payload.Active,
+		IsRoot:       false,
 	}
 
 	if user.Login == models.BootstrapAdminLogin {
 		user.Role = models.AdminUserRoleAdmin
 		user.Active = true
+		user.IsRoot = true
 	}
 
 	if err := h.db.Create(&user).Error; err != nil {
@@ -118,12 +121,14 @@ func (h *Handler) UpdateAdminUser(c *fiber.Ctx) error {
 	user.Role = role
 	user.Active = payload.Active
 
-	if user.Login == models.BootstrapAdminLogin {
+	if user.IsRoot {
+		user.Login = models.BootstrapAdminLogin
 		user.Role = models.AdminUserRoleAdmin
 		user.Active = true
+		user.IsRoot = true
 	}
 
-	if user.Login != models.BootstrapAdminLogin && strings.TrimSpace(payload.Password) != "" {
+	if !user.IsRoot && strings.TrimSpace(payload.Password) != "" {
 		hash, err := bcrypt.GenerateFromPassword([]byte(strings.TrimSpace(payload.Password)), bcrypt.DefaultCost)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "не удалось обновить пароль пользователя"})
@@ -147,6 +152,7 @@ func toAdminUserResponse(user models.AdminUser) adminUserResponse {
 		Login:     user.Login,
 		Role:      user.Role,
 		Active:    user.Active,
+		IsRoot:    user.IsRoot,
 		CreatedAt: user.CreatedAt.Format(timeLayoutSeconds),
 		UpdatedAt: user.UpdatedAt.Format(timeLayoutSeconds),
 	}

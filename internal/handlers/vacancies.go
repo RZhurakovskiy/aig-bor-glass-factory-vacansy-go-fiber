@@ -280,19 +280,39 @@ func (h *Handler) ReorderVacancies(c *fiber.Ctx) error {
 }
 
 func toVacancyResponse(v models.Vacancy) vacancyResponse {
+	scheduleLines := models.SplitLines(v.Schedule)
+	if scheduleLines == nil {
+		scheduleLines = []string{}
+	}
+
+	dutiesList := models.SplitLines(v.Duties)
+	if dutiesList == nil {
+		dutiesList = []string{}
+	}
+
+	requirementsList := models.SplitLines(v.Requirements)
+	if requirementsList == nil {
+		requirementsList = []string{}
+	}
+
+	conditionsList := models.SplitLines(v.Conditions)
+	if conditionsList == nil {
+		conditionsList = []string{}
+	}
+
 	return vacancyResponse{
 		ID:               v.ID,
 		SortOrder:        v.SortOrder,
 		Title:            v.Title,
 		Schedule:         v.Schedule,
-		ScheduleLines:    models.SplitLines(v.Schedule),
+		ScheduleLines:    scheduleLines,
 		Summary:          v.Summary,
 		Duties:           v.Duties,
-		DutiesList:       models.SplitLines(v.Duties),
+		DutiesList:       dutiesList,
 		Requirements:     v.Requirements,
-		RequirementsList: models.SplitLines(v.Requirements),
+		RequirementsList: requirementsList,
 		Conditions:       v.Conditions,
-		ConditionsList:   models.SplitLines(v.Conditions),
+		ConditionsList:   conditionsList,
 		Salary:           v.Salary,
 		Active:           v.Active,
 		TrashedAt:        v.TrashedAt,

@@ -654,6 +654,7 @@ function renderUsers() {
 					<span class="admin-badge ${user.active ? 'admin-badge_success' : 'admin-badge_muted'}">
 						${user.active ? 'Доступ разрешен' : 'Доступ отключен'}
 					</span>
+					${user.isRoot ? '<span class="admin-badge admin-badge_root">Главный пользователь</span>' : ''}
 					<span class="admin-vacancy-card__order">${escapeHtml(getRoleLabel(user.role))}</span>
 				</div>
 				<h3 class="admin-vacancy-card__title">${escapeHtml(user.login)}</h3>
@@ -1073,7 +1074,7 @@ function openDeleteVacancyModal(vacancy, mode) {
 		mode === 'trash'
 			? `Вакансия «${vacancy.title}» будет перемещена в корзину.`
 			: `Вакансия «${vacancy.title}» будет удалена навсегда без возможности восстановления.`
-	elements.deleteVacancyModal.hidden = false
+	openModal(elements.deleteVacancyModal)
 	syncModalState()
 }
 
@@ -1082,11 +1083,12 @@ function closeDeleteVacancyModal() {
 
 	state.pendingDeleteVacancyId = null
 	state.pendingDeleteMode = null
-	if (elements.deleteVacancyTitle) {
-		elements.deleteVacancyTitle.textContent = 'Удалить вакансию?'
-	}
-	elements.confirmDeleteVacancyButton.textContent = 'Удалить'
-	elements.deleteVacancyModal.hidden = true
+	closeModal(elements.deleteVacancyModal, () => {
+		if (elements.deleteVacancyTitle) {
+			elements.deleteVacancyTitle.textContent = 'Удалить вакансию?'
+		}
+		elements.confirmDeleteVacancyButton.textContent = 'Удалить'
+	})
 	syncModalState()
 }
 
@@ -1142,14 +1144,14 @@ async function handleOpenTrash() {
 function openTrashModal() {
 	if (!elements.trashModal) return
 
-	elements.trashModal.hidden = false
+	openModal(elements.trashModal)
 	syncModalState()
 }
 
 function closeTrashModal() {
 	if (!elements.trashModal) return
 
-	elements.trashModal.hidden = true
+	closeModal(elements.trashModal)
 	syncModalState()
 }
 
@@ -1166,7 +1168,7 @@ function handleEmptyTrashClick() {
 	elements.confirmDeleteVacancyButton.textContent = 'Очистить корзину'
 	elements.deleteVacancyText.textContent =
 		'Все вакансии из корзины будут удалены навсегда без возможности восстановления.'
-	elements.deleteVacancyModal.hidden = false
+	openModal(elements.deleteVacancyModal)
 	syncModalState()
 }
 
@@ -1192,7 +1194,7 @@ function openResetVacancyModal() {
 	if (!elements.resetVacancyModal) return
 
 	state.pendingVacancyReset = true
-	elements.resetVacancyModal.hidden = false
+	openModal(elements.resetVacancyModal)
 	syncModalState()
 }
 
@@ -1200,8 +1202,45 @@ function closeResetVacancyModal() {
 	if (!elements.resetVacancyModal) return
 
 	state.pendingVacancyReset = false
-	elements.resetVacancyModal.hidden = true
+	closeModal(elements.resetVacancyModal)
 	syncModalState()
+}
+
+function openModal(modal) {
+	if (!modal) return
+
+	if (modal.dataset.closeTimer) {
+		window.clearTimeout(Number(modal.dataset.closeTimer))
+		delete modal.dataset.closeTimer
+	}
+
+	modal.hidden = false
+	modal.classList.remove('is-closing')
+	requestAnimationFrame(() => {
+		modal.classList.add('is-open')
+	})
+}
+
+function closeModal(modal, onClosed) {
+	if (!modal || modal.hidden) return
+
+	modal.classList.remove('is-open')
+	modal.classList.add('is-closing')
+
+	if (modal.dataset.closeTimer) {
+		window.clearTimeout(Number(modal.dataset.closeTimer))
+	}
+
+	modal.dataset.closeTimer = String(
+		window.setTimeout(() => {
+			modal.hidden = true
+			modal.classList.remove('is-closing')
+			delete modal.dataset.closeTimer
+			if (typeof onClosed === 'function') {
+				onClosed()
+			}
+		}, 220)
+	)
 }
 
 function confirmVacancyReset() {
@@ -1839,26 +1878,26 @@ function fillUserForm(user) {
 	roleField.value = user.role || 'admin'
 	const activeField = elements.userForm.elements.namedItem('active')
 	activeField.checked = Boolean(user.active)
-	activeField.disabled = user.login === 'hrautomotive_admin'
+	activeField.disabled = Boolean(user.isRoot)
 	activeField.title =
-		user.login === 'hrautomotive_admin'
+		user.isRoot
 			? 'Недоступно для главного пользователя.'
 			: ''
-	passwordField.disabled = user.login === 'hrautomotive_admin'
-	roleField.disabled = user.login === 'hrautomotive_admin'
+	passwordField.disabled = Boolean(user.isRoot)
+	roleField.disabled = Boolean(user.isRoot)
 	passwordField.placeholder =
-		user.login === 'hrautomotive_admin'
+		user.isRoot
 			? 'Смена пароля недоступна для главного пользователя'
 			: 'Введите новый пароль'
 	passwordField.title =
-		user.login === 'hrautomotive_admin'
+		user.isRoot
 			? 'Смена пароля недоступна для главного пользователя.'
 			: ''
 	roleField.title =
-		user.login === 'hrautomotive_admin'
+		user.isRoot
 			? 'Смена роли недоступна для главного пользователя.'
 			: ''
-	if (user.login === 'hrautomotive_admin') {
+	if (user.isRoot) {
 		replaceRoleFieldWithLockedMessage(roleField)
 	}
 	elements.userFormTitle.textContent = `Редактирование: ${user.login}`

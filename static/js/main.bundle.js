@@ -59,7 +59,7 @@ async function renderVacancies(onLoaded) {
 				${vacancies
 					.map(
 						vacancy => `
-							<button class="tab-button" data-job="${escapeAttribute(vacancy.title)}">
+							<button class="tab-button" data-vacancy-id="${escapeAttribute(vacancy.id)}">
 								${escapeHtml(vacancy.title)}
 							</button>
 						`
@@ -72,7 +72,7 @@ async function renderVacancies(onLoaded) {
 					${vacancies
 						.map(
 							vacancy => `
-								<option value="${escapeAttribute(vacancy.title)}" data-job="${escapeAttribute(vacancy.title)}">
+								<option value="${escapeAttribute(vacancy.id)}">
 									${escapeHtml(vacancy.title)}
 								</option>
 							`
@@ -84,19 +84,19 @@ async function renderVacancies(onLoaded) {
 				${vacancies
 					.map(
 						(vacancy, index) => `
-							<article class="vacancy-card" data-job="${escapeAttribute(vacancy.title)}" data-vacancy-id="${escapeAttribute(vacancy.id)}">
+							<article class="vacancy-card" data-vacancy-id="${escapeAttribute(vacancy.id)}">
 								<div class="vacancy-card__header">
 									<div class="vacancy-card__number-block">
 										<span class="vacancy-card__number">${index + 1}.</span>
 									</div>
-									<div class="vacancy-card__title">
-										<h4>${escapeHtml(vacancy.title)}</h4>
+								<div class="vacancy-card__title">
+									<h4>${escapeHtml(vacancy.title)}</h4>
 										${
 											vacancy.salary
 												? `<div class="vacancy-card__salary">${escapeHtml(vacancy.salary)}</div>`
 												: ''
 										}
-										${vacancy.scheduleLines
+										${toArray(vacancy.scheduleLines)
 											.map(line => `<p>${escapeHtml(line)}</p>`)
 											.join('')}
 									</div>
@@ -239,14 +239,19 @@ function initVacancyViewTracking() {
 }
 
 function renderVacancyColumn(title, items) {
+	const safeItems = toArray(items)
 	return `
 		<div class="vacancy-card__description-item">
 			<h4>${title}</h4>
 			<ul class="vacancy-card__description-list">
-				${items.map(item => `<li>${escapeHtml(item)}</li>`).join('')}
+				${safeItems.map(item => `<li>${escapeHtml(item)}</li>`).join('')}
 			</ul>
 		</div>
 	`
+}
+
+function toArray(value) {
+	return Array.isArray(value) ? value : []
 }
 
 async function renderContacts(onLoaded) {

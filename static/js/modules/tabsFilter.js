@@ -4,10 +4,6 @@ export function tabsFilter() {
 	const wrapper = document.querySelector('.vacancy-card__item')
 	const select = document.getElementById('vacancy-select')
 
-	function normalizeString(str) {
-		return str?.replace(/\s+/g, ' ').trim().toLowerCase()
-	}
-
 	function emitActiveVacancyChange(card) {
 		if (!card) return
 
@@ -29,16 +25,18 @@ export function tabsFilter() {
 
 	buttons.forEach(button => {
 		button.addEventListener('click', () => {
-			const selectedJob = normalizeString(button.getAttribute('data-job'))
+			const selectedVacancyId = button.getAttribute('data-vacancy-id') || ''
 
 			buttons.forEach(btn => btn.classList.remove('active'))
 			button.classList.add('active')
+			if (select) {
+				select.value = selectedVacancyId
+			}
 
 			const current = document.querySelector('.vacancy-card.active')
 			let next = null
 			contents.forEach(content => {
-				const contentJob = normalizeString(content.getAttribute('data-job'))
-				if (contentJob === selectedJob) next = content
+				if (content.getAttribute('data-vacancy-id') === selectedVacancyId) next = content
 			})
 
 			if (!next || next === current) return
@@ -66,14 +64,11 @@ export function tabsFilter() {
 	if (!select) return
 
 	select.addEventListener('change', () => {
-		const selectedJob = normalizeString(
-			select.options[select.selectedIndex].getAttribute('data-job')
-		)
+		const selectedVacancyId = select.value
 
 		// Sync tab buttons active state
 		buttons.forEach(btn => {
-			const buttonJob = normalizeString(btn.getAttribute('data-job'))
-			if (buttonJob === selectedJob) btn.classList.add('active')
+			if ((btn.getAttribute('data-vacancy-id') || '') === selectedVacancyId) btn.classList.add('active')
 			else btn.classList.remove('active')
 		})
 
@@ -81,8 +76,7 @@ export function tabsFilter() {
 		const current = document.querySelector('.vacancy-card.active')
 		let next = null
 		contents.forEach(content => {
-			const contentJob = normalizeString(content.getAttribute('data-job'))
-			if (contentJob === selectedJob) next = content
+			if (content.getAttribute('data-vacancy-id') === selectedVacancyId) next = content
 		})
 		if (!next || next === current) return
 

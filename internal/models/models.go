@@ -48,6 +48,7 @@ type AdminUser struct {
 	PasswordHash string `gorm:"not null"`
 	Role         string `gorm:"size:32;not null"`
 	Active       bool
+	IsRoot       bool `gorm:"not null;default:false"`
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
 }
