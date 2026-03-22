@@ -1916,13 +1916,23 @@ function trimUserAgent(value) {
 
 function getMetricsSegmentColor(vacancyId) {
 	const palette = [
-		'#2d2d2d',
+		'#708896',
+		'#0ea5b7',
+		'#22c55e',
+		'#3b82f6',
+		'#f59e0b',
+		'#ef4444',
+		'#8b5cf6',
+		'#64748b',
+		'#14b8a6',
+		'#2563eb',
 		'#7c3aed',
-		'#0891b2',
 		'#f97316',
-		'#16a34a',
+		'#84cc16',
+		'#d946ef',
+		'#06b6d4',
+		'#65a30d',
 		'#dc2626',
-		'#d4a017',
 		'#475569',
 	]
 

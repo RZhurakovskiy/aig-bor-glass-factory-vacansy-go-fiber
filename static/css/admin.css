@@ -473,6 +473,7 @@ body.admin-modal-open {
 	height: 10px;
 	border-radius: 999px;
 	flex: 0 0 auto;
+	border: 1px solid rgba(0, 0, 0, 0.12);
 }
 
 .admin-metrics-legend__text {
@@ -528,6 +529,11 @@ body.admin-modal-open {
 
 .admin-metric-day__segment {
 	width: 100%;
+}
+
+.admin-metric-day__segment + .admin-metric-day__segment {
+	margin-top: 2px; /* subtle separation between stacked segments */
+	border-top: 1px solid rgba(255, 255, 255, 0.55);
 }
 
 .admin-vacancy-card {
