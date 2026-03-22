@@ -7,7 +7,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strings"
 	"time"
 
 	assets "glass-factory"
@@ -150,20 +149,10 @@ func generateSessionSecret() (string, error) {
 }
 
 func mustLoadSessionSecret() string {
-	secret := strings.TrimSpace(os.Getenv("ADMIN_SESSION_SECRET"))
-	if secret != "" {
-		return secret
+	generated, err := generateSessionSecret()
+	if err != nil {
+		log.Fatalf("ошибка генерации секрета сессии: %v", err)
 	}
-
-	if os.Getenv("APP_ENV") == "dev" {
-		generated, err := generateSessionSecret()
-		if err != nil {
-			log.Fatalf("ошибка генерации секрета сессии: %v", err)
-		}
-		log.Println("ADMIN_SESSION_SECRET не задан, используется временный секрет только для dev-режима")
-		return generated
-	}
-
-	log.Fatalf("не задана обязательная переменная окружения %s", "ADMIN_SESSION_SECRET")
-	return ""
+	log.Println("секрет сессии сгенерирован автоматически для текущего запуска сервера")
+	return generated
 }
