@@ -80,7 +80,7 @@ func seedDatabase(db *gorm.DB) error {
 		adminUser := models.AdminUser{
 			Login:        models.BootstrapAdminLogin,
 			PasswordHash: string(hash),
-			Role:         models.AdminUserRoleAdmin,
+			Role:         models.AdminUserRoleHR,
 			Active:       true,
 			IsRoot:       true,
 		}
@@ -104,7 +104,7 @@ func seedDatabase(db *gorm.DB) error {
 		bootstrapUser = models.AdminUser{
 			Login:        models.BootstrapAdminLogin,
 			PasswordHash: string(hash),
-			Role:         models.AdminUserRoleAdmin,
+			Role:         models.AdminUserRoleHR,
 			Active:       true,
 			IsRoot:       true,
 		}
@@ -117,7 +117,7 @@ func seedDatabase(db *gorm.DB) error {
 		Where("login = ?", models.BootstrapAdminLogin).
 		Updates(map[string]any{
 			"is_root": true,
-			"role":    models.AdminUserRoleAdmin,
+			"role":    models.AdminUserRoleHR,
 			"active":  true,
 		}).Error; err != nil {
 		return err

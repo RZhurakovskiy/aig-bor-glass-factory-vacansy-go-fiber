@@ -3,6 +3,7 @@ const elements = {
 	pageSections: Array.from(document.querySelectorAll('[data-admin-page]')),
 	pageLinks: Array.from(document.querySelectorAll('[data-admin-page-link]')),
 	logoutButton: document.getElementById('logoutButton'),
+	adminRoleChip: document.getElementById('adminRoleChip'),
 	saveButton: document.getElementById('saveButton'),
 	statusMessage: document.getElementById('statusMessage'),
 	infoDockButton: document.getElementById('infoDockButton'),
@@ -145,6 +146,7 @@ function bindEvents() {
 	if (isContactsPage() && elements.contactsForm) {
 		elements.contactsForm.addEventListener('submit', handleContactsSubmit)
 		elements.contactsForm.addEventListener('click', handleContactsFormClick)
+		elements.contactsForm.addEventListener('input', handleContactsFormInput)
 	}
 	if (isContactsPage() && elements.saveButton) {
 		elements.saveButton.addEventListener('click', handleContactsSubmit)
@@ -197,6 +199,7 @@ function bindEvents() {
 		elements.resetVacancyButton.addEventListener('click', handleResetVacancyClick)
 		elements.createVacancyButton.addEventListener('click', resetVacancyForm)
 		elements.vacancyForm.addEventListener('click', handleVacancyFormClick)
+		elements.vacancyForm.addEventListener('input', handleVacancyFormInput)
 		elements.vacanciesList.addEventListener('click', handleVacancyListClick)
 		elements.vacanciesList.addEventListener('change', handleVacancyListChange)
 		elements.trashVacanciesList.addEventListener('click', handleTrashListClick)
@@ -314,6 +317,7 @@ async function refreshAdminMeta() {
 
 	const meta = await response.json()
 	state.adminMeta = meta
+	syncAdminRoleChip()
 
 	if (elements.serverVersionValue) {
 		elements.serverVersionValue.textContent = meta.version || 'unknown'
@@ -334,6 +338,7 @@ async function refreshAdminMeta() {
 
 function handleAdminMetaError(error) {
 	console.error(error)
+	syncAdminRoleChip()
 	if (elements.serverVersionValue) {
 		elements.serverVersionValue.textContent = 'Недоступно'
 	}
@@ -576,7 +581,7 @@ function renderVacancies() {
 					Редактировать
 				</button>
 				<button class="admin-btn admin-btn_danger" data-action="delete" data-id="${vacancy.id}" type="button">
-					Удалить
+					В корзину
 				</button>
 			</div>
 		`
@@ -655,7 +660,7 @@ function renderUsers() {
 						${user.active ? 'Доступ разрешен' : 'Доступ отключен'}
 					</span>
 					${user.isRoot ? '<span class="admin-badge admin-badge_root">Главный пользователь</span>' : ''}
-					<span class="admin-vacancy-card__order">${escapeHtml(getRoleLabel(user.role))}</span>
+					<span class="admin-vacancy-card__order">${escapeHtml(getRoleLabel(user.role, user.isRoot))}</span>
 				</div>
 				<h3 class="admin-vacancy-card__title">${escapeHtml(user.login)}</h3>
 				<p class="admin-vacancy-card__summary">Обновлен: ${escapeHtml(user.updatedAt || 'только что')}</p>
@@ -911,6 +916,7 @@ async function handleVacancySubmit(event) {
 			? event.currentTarget
 			: elements.saveVacancyButton
 
+	compactListEditors(['schedule', 'duties', 'requirements', 'conditions'])
 	const formData = new FormData(elements.vacancyForm)
 	const vacancyId = Number(formData.get('id') || 0)
 	const currentVacancy = vacancyId ? findVacancy(vacancyId) : null
@@ -1464,6 +1470,8 @@ async function handleContactsSubmit(event) {
 		event?.type === 'click' && event.currentTarget instanceof HTMLElement
 			? event.currentTarget
 			: elements.saveButton
+
+	compactListEditors(['phones'])
 	const formData = new FormData(elements.contactsForm)
 
 	elements.saveButton.disabled = true
@@ -1514,6 +1522,21 @@ function handleContactsFormClick(event) {
 	if (removeButton) {
 		removeListEditorItem('phones', removeButton)
 	}
+}
+
+function handleContactsFormInput(event) {
+	if (event.target.closest('[data-list-editor="phones"]')) {
+		syncListEditorState('phones')
+	}
+}
+
+function handleVacancyFormInput(event) {
+	const editor = event.target.closest('[data-list-editor]')
+	if (!editor) return
+
+	const name = editor.dataset.listEditor
+	if (!name) return
+	syncListEditorState(name)
 }
 
 async function handleLogout() {
@@ -1934,7 +1957,7 @@ function resetUserForm() {
 	const passwordField = elements.userForm.elements.namedItem('password')
 	const roleField = elements.userForm.elements.namedItem('role')
 	restoreRoleFieldOptions(roleField)
-	roleField.value = 'admin'
+	roleField.value = 'hr'
 	roleField.disabled = false
 	roleField.title = ''
 	passwordField.disabled = false
@@ -1956,8 +1979,8 @@ function replaceRoleFieldWithLockedMessage(roleField) {
 	}
 
 	roleField.innerHTML =
-		'<option value="admin">Смена роли недоступна для главного пользователя</option>'
-	roleField.value = 'admin'
+		'<option value="hr">Смена роли недоступна для главного пользователя</option>'
+	roleField.value = 'hr'
 }
 
 function restoreRoleFieldOptions(roleField) {
@@ -1971,15 +1994,18 @@ function findUser(id) {
 	return state.users.find(user => user.id === id) || null
 }
 
-function getRoleLabel(role) {
-	switch (role) {
-		case 'admin':
-			return 'Администратор'
-		case 'hr':
-			return 'HR'
-		default:
-			return role || 'Роль не указана'
-	}
+function getRoleLabel(role, isRoot = false) {
+	if (isRoot || role === 'hr') return 'HR / Главный администратор'
+	if (role === 'admin') return 'Администратор'
+	return role || 'Роль не указана'
+}
+
+function syncAdminRoleChip() {
+	if (!elements.adminRoleChip) return
+
+	const role = state.adminMeta?.currentRole || 'admin'
+	const isRoot = Boolean(state.adminMeta?.currentIsRoot)
+	elements.adminRoleChip.textContent = getRoleLabel(role, isRoot)
 }
 
 function formatNumber(value) {
@@ -2027,12 +2053,14 @@ function setListEditorItems(name, items) {
 	const normalized = items.filter(item => readText(item) !== '')
 	if (!normalized.length) {
 		editor.appendChild(createListEditorRow(name, ''))
+		syncListEditorState(name)
 		return
 	}
 
 	normalized.forEach(item => {
 		editor.appendChild(createListEditorRow(name, item))
 	})
+	syncListEditorState(name)
 }
 
 function addListEditorItem(name, value = '') {
@@ -2040,6 +2068,7 @@ function addListEditorItem(name, value = '') {
 	if (!editor) return
 
 	editor.appendChild(createListEditorRow(name, value))
+	syncListEditorState(name)
 	const input = editor.lastElementChild?.querySelector('input')
 	if (input) input.focus()
 }
@@ -2052,10 +2081,12 @@ function removeListEditorItem(name, button) {
 	if (editor.children.length === 1) {
 		const input = row.querySelector('input')
 		if (input) input.value = ''
+		syncListEditorState(name)
 		return
 	}
 
 	row.remove()
+	syncListEditorState(name)
 }
 
 function joinListEditorItems(name) {
@@ -2071,6 +2102,40 @@ function joinListEditorItems(name) {
 function resetListEditors() {
 	Object.keys(elements.listEditors).forEach(name => {
 		setListEditorItems(name, [])
+	})
+}
+
+function compactListEditors(names) {
+	names.forEach(name => {
+		const editor = elements.listEditors[name]
+		if (!editor) return
+
+		const values = Array.from(editor.querySelectorAll('input'))
+			.map(input => readText(input.value))
+			.filter(Boolean)
+
+		setListEditorItems(name, values)
+	})
+}
+
+function syncListEditorState(name) {
+	const editor = elements.listEditors[name]
+	if (!editor) return
+
+	const rows = Array.from(editor.querySelectorAll('.admin-list-editor__row'))
+	rows.forEach(row => {
+		const input = row.querySelector('input')
+		const removeButton = row.querySelector(
+			`[data-remove-list-item="${name}"]`
+		)
+		if (!(input instanceof HTMLInputElement)) return
+		if (!(removeButton instanceof HTMLButtonElement)) return
+
+		const shouldDisable = rows.length === 1 && readText(input.value) === ''
+		removeButton.disabled = shouldDisable
+		removeButton.title = shouldDisable
+			? 'Недоступно для пустого единственного поля.'
+			: ''
 	})
 }
 

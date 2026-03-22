@@ -76,7 +76,7 @@ func (h *Handler) CreateAdminUser(c *fiber.Ctx) error {
 	}
 
 	if user.Login == models.BootstrapAdminLogin {
-		user.Role = models.AdminUserRoleAdmin
+		user.Role = models.AdminUserRoleHR
 		user.Active = true
 		user.IsRoot = true
 	}
@@ -123,7 +123,7 @@ func (h *Handler) UpdateAdminUser(c *fiber.Ctx) error {
 
 	if user.IsRoot {
 		user.Login = models.BootstrapAdminLogin
-		user.Role = models.AdminUserRoleAdmin
+		user.Role = models.AdminUserRoleHR
 		user.Active = true
 		user.IsRoot = true
 	}

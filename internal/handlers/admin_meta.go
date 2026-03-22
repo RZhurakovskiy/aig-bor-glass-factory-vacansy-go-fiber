@@ -6,15 +6,19 @@ import (
 	"runtime"
 	"strings"
 
+	"glass-factory/internal/models"
+
 	"github.com/gofiber/fiber/v2"
 )
 
 type adminMetaResponse struct {
-	Version   string `json:"version"`
-	GoVersion string `json:"goVersion"`
-	Platform  string `json:"platform"`
-	Hostname  string `json:"hostname"`
-	OSName    string `json:"osName"`
+	Version       string `json:"version"`
+	GoVersion     string `json:"goVersion"`
+	Platform      string `json:"platform"`
+	Hostname      string `json:"hostname"`
+	OSName        string `json:"osName"`
+	CurrentRole   string `json:"currentRole"`
+	CurrentIsRoot bool   `json:"currentIsRoot"`
 }
 
 func (h *Handler) GetAdminMeta(c *fiber.Ctx) error {
@@ -28,12 +32,21 @@ func (h *Handler) GetAdminMeta(c *fiber.Ctx) error {
 		hostname = "unknown"
 	}
 
+	currentRole := ""
+	currentIsRoot := false
+	if adminUser, ok := c.Locals("adminUser").(models.AdminUser); ok {
+		currentRole = adminUser.Role
+		currentIsRoot = adminUser.IsRoot
+	}
+
 	return c.JSON(adminMetaResponse{
-		Version:   fmt.Sprintf("Go server %s", version),
-		GoVersion: runtime.Version(),
-		Platform:  fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH),
-		Hostname:  hostname,
-		OSName:    detectOSName(),
+		Version:       fmt.Sprintf("Go server %s", version),
+		GoVersion:     runtime.Version(),
+		Platform:      fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH),
+		Hostname:      hostname,
+		OSName:        detectOSName(),
+		CurrentRole:   currentRole,
+		CurrentIsRoot: currentIsRoot,
 	})
 }
 

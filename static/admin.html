@@ -40,7 +40,7 @@
 				<header class="admin-topbar">
 					<div class="admin-topbar__content">
 						<div class="admin-topbar__meta">
-							<div class="admin-topbar__chip">HR / Администратор</div>
+							<div class="admin-topbar__chip" id="adminRoleChip">Администратор</div>
 						</div>
 						<h1 class="admin-topbar__title">Управление сайтом</h1>
 						<p class="admin-topbar__subtitle">
@@ -552,8 +552,8 @@
 												<label class="admin-field">
 													<span class="admin-field__label">Роль</span>
 													<select class="admin-input" name="role" required>
+														<option value="hr">HR / Главный администратор</option>
 														<option value="admin">Администратор</option>
-														<option value="hr">HR</option>
 													</select>
 												</label>
 
