@@ -2036,28 +2036,6 @@ img {
 	height: 30px;
 }
 
-/* ===== Visual enhancements (no color scheme change) ===== */
-/* Animated underline for top navigation links */
-.nav-bar__item a {
-	position: relative;
-}
-.nav-bar__item a::after {
-	content: "";
-	position: absolute;
-	left: 12px;
-	right: 12px;
-	bottom: 3px;
-	height: 2px;
-	background: rgba(255, 255, 255, 0.9);
-	opacity: 0.9;
-	transform: scaleX(0);
-	transform-origin: center;
-	transition: transform 0.25s ease, opacity 0.25s ease;
-}
-.nav-bar__item a.is-active::after {
-	transform: scaleX(1);
-}
-
 /* Buttons hover lift */
 .header-content__button-vacancy:hover,
 .header-content__button-vacancy:focus-visible,

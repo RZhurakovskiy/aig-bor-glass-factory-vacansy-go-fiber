@@ -539,9 +539,7 @@ function renderVacancies() {
 			item.classList.add('is-active')
 		}
 
-		const summary = vacancy.summary
-			? escapeHtml(vacancy.summary)
-			: 'Краткое описание не заполнено.'
+		const summary = escapeHtml(getVacancyPreviewText(vacancy))
 
 		item.innerHTML = `
 			<div class="admin-vacancy-card__content">
@@ -1375,6 +1373,27 @@ function handleVacancyFormClick(event) {
 
 function findVacancy(id) {
 	return state.vacancies.find(vacancy => vacancy.id === id) || null
+}
+
+function getVacancyPreviewText(vacancy) {
+	const scheduleLines = Array.isArray(vacancy.scheduleLines)
+		? vacancy.scheduleLines
+		: splitLines(vacancy.schedule)
+
+	if (scheduleLines.length) {
+		const preview = scheduleLines
+			.slice(0, 2)
+			.map((line) => line.replace(/^\s*[-–—•]+\s*/, '').trim())
+			.filter(Boolean)
+			.join(' • ')
+		return preview.length > 140 ? preview.slice(0, 137) + '...' : preview
+	}
+
+	if (readText(vacancy.summary) !== '') {
+		return vacancy.summary
+	}
+
+	return 'Описание вакансии не заполнено.'
 }
 
 async function handleContactsSubmit(event) {
