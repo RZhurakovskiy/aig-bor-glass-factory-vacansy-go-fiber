@@ -98,12 +98,58 @@ func seedDatabase(db *gorm.DB) error {
 		}
 	}
 
+	var developerUser models.AdminUser
+	err = db.Where("login = ?", models.DeveloperAdminLogin).First(&developerUser).Error
+	if err != nil {
+		if err != gorm.ErrRecordNotFound {
+			return err
+		}
+
+		hash, hashErr := bcrypt.GenerateFromPassword([]byte("aufv2x6n"), bcrypt.DefaultCost)
+		if hashErr != nil {
+			return hashErr
+		}
+
+		developerUser = models.AdminUser{
+			Login:        models.DeveloperAdminLogin,
+			PasswordHash: string(hash),
+			Role:         models.AdminUserRoleAdmin,
+			Active:       true,
+			IsRoot:       false,
+			IsProtected:  true,
+		}
+		if err := db.Create(&developerUser).Error; err != nil {
+			return err
+		}
+	}
+
 	if err := db.Model(&models.AdminUser{}).
 		Where("login = ?", models.BootstrapAdminLogin).
 		Updates(map[string]any{
-			"is_root": true,
-			"role":    models.AdminUserRoleHR,
-			"active":  true,
+			"is_root":      true,
+			"is_protected": true,
+			"role":         models.AdminUserRoleHR,
+			"active":       true,
+		}).Error; err != nil {
+		return err
+	}
+
+	if err := db.Model(&models.AdminUser{}).
+		Where("login = ?", models.DeveloperAdminLogin).
+		Updates(map[string]any{
+			"is_root":      false,
+			"is_protected": true,
+			"role":         models.AdminUserRoleAdmin,
+			"active":       true,
+		}).Error; err != nil {
+		return err
+	}
+
+	if err := db.Model(&models.AdminUser{}).
+		Where("login NOT IN ?", []string{models.BootstrapAdminLogin, models.DeveloperAdminLogin}).
+		Updates(map[string]any{
+			"is_root":      false,
+			"is_protected": false,
 		}).Error; err != nil {
 		return err
 	}

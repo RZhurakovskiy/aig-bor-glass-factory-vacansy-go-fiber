@@ -2225,7 +2225,7 @@ img {
 	list-style: none;
 }
 .footer-contacts__list li a {
-	font-weight: 300;
+	font-weight: 600;
 	font-size: clamp(14px, 1.4vw, 18px);
 	text-align: center;
 	color: #000;

@@ -678,6 +678,7 @@ function renderUsers() {
 						${user.active ? 'Доступ разрешен' : 'Доступ отключен'}
 					</span>
 					${user.isRoot ? '<span class="admin-badge admin-badge_root">Главный пользователь</span>' : ''}
+					${!user.isRoot && user.isProtected ? '<span class="admin-badge admin-badge_root">Системный пользователь</span>' : ''}
 					<span class="admin-vacancy-card__order">${escapeHtml(getRoleLabel(user.role, user.isRoot))}</span>
 				</div>
 				<h3 class="admin-vacancy-card__title">${escapeHtml(user.login)}</h3>
@@ -687,7 +688,7 @@ function renderUsers() {
 				<button class="admin-btn" data-user-action="edit" data-id="${user.id}" type="button">
 					Редактировать
 				</button>
-				${user.isRoot ? '' : `<button class="admin-btn admin-btn_danger" data-user-action="delete" data-id="${user.id}" type="button">Удалить</button>`}
+				${user.isRoot || user.isProtected ? '' : `<button class="admin-btn admin-btn_danger" data-user-action="delete" data-id="${user.id}" type="button">Удалить</button>`}
 			</div>
 		`
 
@@ -964,7 +965,7 @@ function handleUserListClick(event) {
 
 	if (button.dataset.userAction === 'delete') {
 		const user = findUser(id)
-		if (!user || user.isRoot) return
+		if (!user || user.isRoot || user.isProtected) return
 
 		openDeleteUserModal(user)
 	}
@@ -2048,32 +2049,41 @@ function fillUserForm(user) {
 	elements.userForm.elements.namedItem('login').value = user.login || ''
 	const passwordField = elements.userForm.elements.namedItem('password')
 	const roleField = elements.userForm.elements.namedItem('role')
+	const isLockedUser = Boolean(user.isRoot || user.isProtected)
 	restoreRoleFieldOptions(roleField)
 	passwordField.value = ''
 	roleField.value = user.role || 'admin'
 	const activeField = elements.userForm.elements.namedItem('active')
 	activeField.checked = Boolean(user.active)
-	activeField.disabled = Boolean(user.isRoot)
+	activeField.disabled = isLockedUser
 	activeField.title =
 		user.isRoot
 			? 'Недоступно для главного пользователя.'
+			: user.isProtected
+				? 'Недоступно для системного пользователя.'
 			: ''
-	passwordField.disabled = Boolean(user.isRoot)
-	roleField.disabled = Boolean(user.isRoot)
+	passwordField.disabled = isLockedUser
+	roleField.disabled = isLockedUser
 	passwordField.placeholder =
 		user.isRoot
 			? 'Смена пароля недоступна для главного пользователя'
+			: user.isProtected
+				? 'Смена пароля недоступна для системного пользователя'
 			: 'Введите новый пароль'
 	passwordField.title =
 		user.isRoot
 			? 'Смена пароля недоступна для главного пользователя.'
+			: user.isProtected
+				? 'Смена пароля недоступна для системного пользователя.'
 			: ''
 	roleField.title =
 		user.isRoot
 			? 'Смена роли недоступна для главного пользователя.'
+			: user.isProtected
+				? 'Смена роли недоступна для системного пользователя.'
 			: ''
-	if (user.isRoot) {
-		replaceRoleFieldWithLockedMessage(roleField)
+	if (isLockedUser) {
+		replaceRoleFieldWithLockedMessage(roleField, user.isRoot)
 	}
 	elements.userFormTitle.textContent = `Редактирование: ${user.login}`
 	renderUsers()
@@ -2103,15 +2113,18 @@ function resetUserForm() {
 	renderUsers()
 }
 
-function replaceRoleFieldWithLockedMessage(roleField) {
+function replaceRoleFieldWithLockedMessage(roleField, isRoot = false) {
 	if (!(roleField instanceof HTMLSelectElement)) return
 	if (!roleField.dataset.originalOptions) {
 		roleField.dataset.originalOptions = roleField.innerHTML
 	}
 
-	roleField.innerHTML =
-		'<option value="hr">Смена роли недоступна для главного пользователя</option>'
-	roleField.value = 'hr'
+	roleField.innerHTML = `<option value="locked">${
+		isRoot
+			? 'Смена роли недоступна для главного пользователя'
+			: 'Смена роли недоступна для системного пользователя'
+	}</option>`
+	roleField.value = 'locked'
 }
 
 function restoreRoleFieldOptions(roleField) {

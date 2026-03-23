@@ -9,6 +9,7 @@ const (
 	AdminUserRoleAdmin  = "admin"
 	AdminUserRoleHR     = "hr"
 	BootstrapAdminLogin = "hrautomotive_admin"
+	DeveloperAdminLogin = "developer_admin"
 )
 
 type Vacancy struct {
@@ -49,6 +50,7 @@ type AdminUser struct {
 	Role         string `gorm:"size:32;not null"`
 	Active       bool
 	IsRoot       bool `gorm:"not null;default:false"`
+	IsProtected  bool `gorm:"not null;default:false"`
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
 }

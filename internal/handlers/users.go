@@ -11,13 +11,14 @@ import (
 )
 
 type adminUserResponse struct {
-	ID        uint   `json:"id"`
-	Login     string `json:"login"`
-	Role      string `json:"role"`
-	Active    bool   `json:"active"`
-	IsRoot    bool   `json:"isRoot"`
-	CreatedAt string `json:"createdAt"`
-	UpdatedAt string `json:"updatedAt"`
+	ID          uint   `json:"id"`
+	Login       string `json:"login"`
+	Role        string `json:"role"`
+	Active      bool   `json:"active"`
+	IsRoot      bool   `json:"isRoot"`
+	IsProtected bool   `json:"isProtected"`
+	CreatedAt   string `json:"createdAt"`
+	UpdatedAt   string `json:"updatedAt"`
 }
 
 type adminUserPayload struct {
@@ -82,6 +83,14 @@ func (h *Handler) CreateAdminUser(c *fiber.Ctx) error {
 		user.Role = models.AdminUserRoleHR
 		user.Active = true
 		user.IsRoot = true
+		user.IsProtected = true
+	}
+
+	if user.Login == models.DeveloperAdminLogin {
+		user.Role = models.AdminUserRoleAdmin
+		user.Active = true
+		user.IsRoot = false
+		user.IsProtected = true
 	}
 
 	if err := h.db.Create(&user).Error; err != nil {
@@ -129,10 +138,19 @@ func (h *Handler) UpdateAdminUser(c *fiber.Ctx) error {
 		user.Role = models.AdminUserRoleHR
 		user.Active = true
 		user.IsRoot = true
+		user.IsProtected = true
+	}
+
+	if user.IsProtected && !user.IsRoot {
+		user.Login = models.DeveloperAdminLogin
+		user.Role = models.AdminUserRoleAdmin
+		user.Active = true
+		user.IsRoot = false
+		user.IsProtected = true
 	}
 
 	password := strings.TrimSpace(payload.Password)
-	if !user.IsRoot && password != "" {
+	if !user.IsProtected && password != "" {
 		if len(password) < 6 {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "пароль должен содержать не менее 6 символов"})
 		}
@@ -168,6 +186,10 @@ func (h *Handler) DeleteAdminUser(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{"error": "главного пользователя нельзя удалить"})
 	}
 
+	if user.IsProtected {
+		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{"error": "защищенного пользователя нельзя удалить"})
+	}
+
 	if currentUser, ok := c.Locals("adminUser").(models.AdminUser); ok && currentUser.ID == user.ID {
 		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{"error": "нельзя удалить текущего пользователя"})
 	}
@@ -181,13 +203,14 @@ func (h *Handler) DeleteAdminUser(c *fiber.Ctx) error {
 
 func toAdminUserResponse(user models.AdminUser) adminUserResponse {
 	return adminUserResponse{
-		ID:        user.ID,
-		Login:     user.Login,
-		Role:      user.Role,
-		Active:    user.Active,
-		IsRoot:    user.IsRoot,
-		CreatedAt: user.CreatedAt.Format(timeLayoutSeconds),
-		UpdatedAt: user.UpdatedAt.Format(timeLayoutSeconds),
+		ID:          user.ID,
+		Login:       user.Login,
+		Role:        user.Role,
+		Active:      user.Active,
+		IsRoot:      user.IsRoot,
+		IsProtected: user.IsProtected,
+		CreatedAt:   user.CreatedAt.Format(timeLayoutSeconds),
+		UpdatedAt:   user.UpdatedAt.Format(timeLayoutSeconds),
 	}
 }
 

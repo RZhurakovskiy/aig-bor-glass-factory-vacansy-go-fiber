@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"database/sql"
+	"log"
 	"strings"
 	"time"
 
@@ -112,6 +113,18 @@ type siteVisitEventRow struct {
 	VisitedAt time.Time
 }
 
+func logRequestIPSource(c *fiber.Ctx, event string) {
+	log.Printf(
+		"%s ip_source resolved_ip=%q remote_addr=%q x_forwarded_for=%q x_real_ip=%q cf_connecting_ip=%q",
+		event,
+		strings.TrimSpace(c.IP()),
+		strings.TrimSpace(c.Context().RemoteAddr().String()),
+		strings.TrimSpace(c.Get("X-Forwarded-For")),
+		strings.TrimSpace(c.Get("X-Real-IP")),
+		strings.TrimSpace(c.Get("CF-Connecting-IP")),
+	)
+}
+
 func (h *Handler) TrackVacancyView(c *fiber.Ctx) error {
 	var payload vacancyViewPayload
 	if err := c.BodyParser(&payload); err != nil {
@@ -126,6 +139,8 @@ func (h *Handler) TrackVacancyView(c *fiber.Ctx) error {
 	if err := h.db.Where("id = ? AND active = ? AND trashed_at IS NULL", payload.VacancyID, true).First(&vacancy).Error; err != nil {
 		return respondDBError(c, err)
 	}
+
+	logRequestIPSource(c, "track_vacancy_view")
 
 	view := models.VacancyView{
 		VacancyID: payload.VacancyID,
@@ -148,6 +163,8 @@ func (h *Handler) TrackSiteVisit(c *fiber.Ctx) error {
 	if err := c.BodyParser(&payload); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "некорректные данные посещения"})
 	}
+
+	logRequestIPSource(c, "track_site_visit")
 
 	visit := models.SiteVisit{
 		IPAddress: strings.TrimSpace(c.IP()),
