@@ -4,6 +4,7 @@ export function createPreloader() {
 	const status = document.getElementById('preloaderStatus')
 	const progressBar = document.getElementById('preloaderBar')
 	const navBar = document.querySelector('.nav-bar')
+	const body = document.body
 
 	if (!preloader) {
 		return {
@@ -11,6 +12,8 @@ export function createPreloader() {
 			complete: async () => {},
 		}
 	}
+
+	body?.classList.add('is-preloading')
 
 	let currentProgress = 0
 
@@ -33,9 +36,13 @@ export function createPreloader() {
 		if (navBar) {
 			navBar.classList.remove('hidden')
 		}
+		body?.classList.remove('is-preloading')
+		body?.classList.add('is-page-revealing')
 		preloader.classList.add('is-closing')
 		window.setTimeout(() => {
 			preloader.style.display = 'none'
+			body?.classList.remove('is-page-revealing')
+			body?.classList.add('is-page-ready')
 		}, 920)
 	}
 
