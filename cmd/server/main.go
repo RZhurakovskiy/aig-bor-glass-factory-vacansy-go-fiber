@@ -29,7 +29,7 @@ func main() {
 		log.Fatalf("ошибка открытия базы данных: %v", err)
 	}
 
-	if err := db.AutoMigrate(&models.Vacancy{}, &models.Contact{}, &models.AdminUser{}, &models.VacancyView{}); err != nil {
+	if err := db.AutoMigrate(&models.Vacancy{}, &models.Contact{}, &models.AdminUser{}, &models.VacancyView{}, &models.SiteVisit{}); err != nil {
 		log.Fatalf("ошибка миграции базы данных: %v", err)
 	}
 

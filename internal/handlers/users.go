@@ -146,6 +146,32 @@ func (h *Handler) UpdateAdminUser(c *fiber.Ctx) error {
 	return c.JSON(toAdminUserResponse(user))
 }
 
+func (h *Handler) DeleteAdminUser(c *fiber.Ctx) error {
+	id, err := parseUintParam(c, "id")
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "некорректный идентификатор пользователя"})
+	}
+
+	var user models.AdminUser
+	if err := h.db.First(&user, id).Error; err != nil {
+		return respondDBError(c, err)
+	}
+
+	if user.IsRoot {
+		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{"error": "главного пользователя нельзя удалить"})
+	}
+
+	if currentUser, ok := c.Locals("adminUser").(models.AdminUser); ok && currentUser.ID == user.ID {
+		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{"error": "нельзя удалить текущего пользователя"})
+	}
+
+	if err := h.db.Delete(&user).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "не удалось удалить пользователя"})
+	}
+
+	return c.SendStatus(fiber.StatusNoContent)
+}
+
 func toAdminUserResponse(user models.AdminUser) adminUserResponse {
 	return adminUserResponse{
 		ID:        user.ID,

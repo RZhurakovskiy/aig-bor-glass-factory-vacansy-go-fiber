@@ -35,6 +35,11 @@ const elements = {
 	metricTotalViews: document.getElementById('metricTotalViews'),
 	metricTodayViews: document.getElementById('metricTodayViews'),
 	metricUniqueIps: document.getElementById('metricUniqueIps'),
+	metricSiteTotalVisits: document.getElementById('metricSiteTotalVisits'),
+	metricSiteTodayVisits: document.getElementById('metricSiteTodayVisits'),
+	metricSiteUniqueIps: document.getElementById('metricSiteUniqueIps'),
+	metricsSiteVisitsList: document.getElementById('metricsSiteVisitsList'),
+	metricsSiteVisitsEmpty: document.getElementById('metricsSiteVisitsEmpty'),
 	openTrashButton: document.getElementById('openTrashButton'),
 	openTrashCount: document.getElementById('openTrashCount'),
 	trashVacanciesList: document.getElementById('trashVacanciesList'),
@@ -62,6 +67,10 @@ const elements = {
 	deleteVacancyText: document.getElementById('deleteVacancyText'),
 	confirmDeleteVacancyButton: document.getElementById('confirmDeleteVacancyButton'),
 	cancelDeleteVacancyButton: document.getElementById('cancelDeleteVacancyButton'),
+	deleteUserModal: document.getElementById('deleteUserModal'),
+	deleteUserText: document.getElementById('deleteUserText'),
+	confirmDeleteUserButton: document.getElementById('confirmDeleteUserButton'),
+	cancelDeleteUserButton: document.getElementById('cancelDeleteUserButton'),
 	listEditors: {
 		phones: document.querySelector('[data-list-editor="phones"]'),
 		schedule: document.querySelector('[data-list-editor="schedule"]'),
@@ -91,6 +100,7 @@ const state = {
 	pendingVacancyReset: false,
 	pendingDeleteVacancyId: null,
 	pendingDeleteMode: null,
+	pendingDeleteUserId: null,
 	loaders: new Map(),
 }
 
@@ -175,6 +185,14 @@ function bindEvents() {
 
 	if (elements.cancelDeleteVacancyButton) {
 		elements.cancelDeleteVacancyButton.addEventListener('click', closeDeleteVacancyModal)
+	}
+
+	if (elements.confirmDeleteUserButton) {
+		elements.confirmDeleteUserButton.addEventListener('click', confirmUserDelete)
+	}
+
+	if (elements.cancelDeleteUserButton) {
+		elements.cancelDeleteUserButton.addEventListener('click', closeDeleteUserModal)
 	}
 
 	if (elements.cancelResetVacancyButton) {
@@ -669,6 +687,7 @@ function renderUsers() {
 				<button class="admin-btn" data-user-action="edit" data-id="${user.id}" type="button">
 					Редактировать
 				</button>
+				${user.isRoot ? '' : `<button class="admin-btn admin-btn_danger" data-user-action="delete" data-id="${user.id}" type="button">Удалить</button>`}
 			</div>
 		`
 
@@ -685,6 +704,12 @@ function renderMetrics() {
 		totalViews: 0,
 		todayViews: 0,
 		uniqueIps: 0,
+		siteVisits: {
+			totalVisits: 0,
+			todayVisits: 0,
+			uniqueIps: 0,
+			recentVisits: [],
+		},
 		dailyViews: [],
 		vacancies: [],
 		recentEvents: [],
@@ -693,6 +718,9 @@ function renderMetrics() {
 	elements.metricTotalViews.textContent = formatNumber(metrics.totalViews)
 	elements.metricTodayViews.textContent = formatNumber(metrics.todayViews)
 	elements.metricUniqueIps.textContent = formatNumber(metrics.uniqueIps)
+	elements.metricSiteTotalVisits.textContent = formatNumber(metrics.siteVisits?.totalVisits)
+	elements.metricSiteTodayVisits.textContent = formatNumber(metrics.siteVisits?.todayVisits)
+	elements.metricSiteUniqueIps.textContent = formatNumber(metrics.siteVisits?.uniqueIps)
 
 	elements.metricsVacanciesList.innerHTML = ''
 	elements.metricsDailyList.innerHTML = ''
@@ -700,9 +728,11 @@ function renderMetrics() {
 		elements.metricsDailyLegend.innerHTML = ''
 	}
 	elements.metricsEventsList.innerHTML = ''
+	elements.metricsSiteVisitsList.innerHTML = ''
 	elements.metricsVacanciesEmpty.hidden = metrics.vacancies.length > 0
 	elements.metricsDailyEmpty.hidden = !metrics.dailyViews.every(item => Number(item.viewsCount) === 0)
 	elements.metricsEventsEmpty.hidden = metrics.recentEvents.length > 0
+	elements.metricsSiteVisitsEmpty.hidden = (metrics.siteVisits?.recentVisits || []).length > 0
 
 	if (metrics.vacancies.length) {
 		const vacanciesFragment = document.createDocumentFragment()
@@ -822,6 +852,31 @@ function renderMetrics() {
 
 		elements.metricsEventsList.appendChild(eventsFragment)
 	}
+
+	if (metrics.siteVisits?.recentVisits?.length) {
+		const siteVisitsFragment = document.createDocumentFragment()
+
+		metrics.siteVisits.recentVisits.forEach(item => {
+			const card = document.createElement('article')
+			card.className = 'admin-vacancy-card'
+			card.innerHTML = `
+				<div class="admin-vacancy-card__content">
+					<div class="admin-vacancy-card__meta">
+						<span class="admin-badge admin-badge_muted">${escapeHtml(item.visitedAt || 'без времени')}</span>
+						<span class="admin-vacancy-card__order">IP ${escapeHtml(item.ipAddress || 'не определен')}</span>
+					</div>
+					<h3 class="admin-vacancy-card__title">${escapeHtml(item.pagePath || '/')}</h3>
+					<p class="admin-vacancy-card__summary">${escapeHtml(describeVisitorDevice(item.userAgent || ''))}</p>
+					<p class="admin-vacancy-card__summary">
+						${item.referrer ? escapeHtml(item.referrer) : 'Прямой заход или переход без referrer'}
+					</p>
+				</div>
+			`
+			siteVisitsFragment.appendChild(card)
+		})
+
+		elements.metricsSiteVisitsList.appendChild(siteVisitsFragment)
+	}
 }
 
 function updateTrashButtonCount() {
@@ -904,6 +959,14 @@ function handleUserListClick(event) {
 
 		fillUserForm(user)
 		setUserStatus('')
+		return
+	}
+
+	if (button.dataset.userAction === 'delete') {
+		const user = findUser(id)
+		if (!user || user.isRoot) return
+
+		openDeleteUserModal(user)
 	}
 }
 
@@ -1098,6 +1161,50 @@ function closeDeleteVacancyModal() {
 	})
 }
 
+function openDeleteUserModal(user) {
+	if (!elements.deleteUserModal || !elements.deleteUserText) return
+
+	state.pendingDeleteUserId = user.id
+	elements.deleteUserText.textContent = `Пользователь «${user.login}» будет удален без возможности восстановления.`
+	openModal(elements.deleteUserModal)
+	syncModalState()
+}
+
+function closeDeleteUserModal() {
+	if (!elements.deleteUserModal) return
+
+	state.pendingDeleteUserId = null
+	closeModal(elements.deleteUserModal, () => {
+		if (elements.deleteUserText) {
+			elements.deleteUserText.textContent = ''
+		}
+		syncModalState()
+	})
+}
+
+async function confirmUserDelete() {
+	const id = state.pendingDeleteUserId
+	if (!id) return
+
+	closeDeleteUserModal()
+	setUserStatus('Удаляю пользователя...')
+
+	try {
+		await api(`/api/admin/users/${id}`, { method: 'DELETE' })
+		if (state.selectedUserId === id) {
+			resetUserForm()
+		}
+		await refreshUsers()
+		setUserStatus('Пользователь удален.')
+		showToast('Пользователь удален.')
+	} catch (error) {
+		console.error(error)
+		const message = getErrorMessage(error, 'Не удалось удалить пользователя.')
+		setUserStatus(message, true)
+		showToast(message, 'error')
+	}
+}
+
 function handleDocumentClick(event) {
 	if (
 		state.infoPanelOpen &&
@@ -1114,6 +1221,11 @@ function handleDocumentClick(event) {
 
 	if (event.target.closest('[data-close-reset-modal]')) {
 		closeResetVacancyModal()
+		return
+	}
+
+	if (event.target.closest('[data-close-user-delete-modal]')) {
+		closeDeleteUserModal()
 		return
 	}
 
@@ -1134,6 +1246,11 @@ function handleDocumentKeydown(event) {
 
 	if (event.key === 'Escape' && !elements.resetVacancyModal?.hidden) {
 		closeResetVacancyModal()
+		return
+	}
+
+	if (event.key === 'Escape' && !elements.deleteUserModal?.hidden) {
+		closeDeleteUserModal()
 		return
 	}
 
@@ -1183,6 +1300,7 @@ function syncModalState() {
 	const hasOpenModal =
 		(elements.deleteVacancyModal && !elements.deleteVacancyModal.hidden) ||
 		(elements.resetVacancyModal && !elements.resetVacancyModal.hidden) ||
+		(elements.deleteUserModal && !elements.deleteUserModal.hidden) ||
 		(elements.trashModal && !elements.trashModal.hidden)
 
 	document.body.classList.toggle('admin-modal-open', Boolean(hasOpenModal))
@@ -1901,6 +2019,11 @@ function hasMetricsUI() {
 			elements.metricsVacanciesEmpty &&
 			elements.metricsDailyList &&
 			elements.metricsDailyEmpty &&
+			elements.metricsSiteVisitsList &&
+			elements.metricsSiteVisitsEmpty &&
+			elements.metricSiteTotalVisits &&
+			elements.metricSiteTodayVisits &&
+			elements.metricSiteUniqueIps &&
 			elements.metricsEventsList &&
 			elements.metricsEventsEmpty &&
 			elements.metricTotalViews &&
@@ -2017,6 +2140,27 @@ function trimUserAgent(value) {
 	if (normalized === '') return 'User-Agent не передан'
 	if (normalized.length <= 120) return normalized
 	return normalized.slice(0, 117) + '...'
+}
+
+function describeVisitorDevice(userAgent) {
+	const ua = String(userAgent || '')
+	const lower = ua.toLowerCase()
+	const device = /mobile|android|iphone/i.test(ua) ? 'Мобильное устройство' : 'Desktop'
+	let os = 'Не определено'
+	if (lower.includes('windows')) os = 'Windows'
+	else if (lower.includes('android')) os = 'Android'
+	else if (lower.includes('iphone') || lower.includes('ipad') || lower.includes('ios')) os = 'iOS'
+	else if (lower.includes('mac os') || lower.includes('macintosh')) os = 'macOS'
+	else if (lower.includes('linux')) os = 'Linux'
+
+	let browser = 'Браузер не определен'
+	if (lower.includes('edg/')) browser = 'Edge'
+	else if (lower.includes('opr/') || lower.includes('opera')) browser = 'Opera'
+	else if (lower.includes('chrome/')) browser = 'Chrome'
+	else if (lower.includes('firefox/')) browser = 'Firefox'
+	else if (lower.includes('safari/') && !lower.includes('chrome/')) browser = 'Safari'
+
+	return `${device} • ${os} • ${browser}`
 }
 
 function getMetricsSegmentColor(vacancyId) {

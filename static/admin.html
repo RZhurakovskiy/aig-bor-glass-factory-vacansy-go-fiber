@@ -622,6 +622,42 @@
 								</section>
 
 								<section class="admin-section admin-section_full">
+									<div class="admin-section__header">
+										<div>
+											<h2 class="admin-section__title">Посещаемость страницы</h2>
+											<p class="admin-section__subtitle">
+												Отдельный учет посещений главной страницы сайта.
+											</p>
+										</div>
+									</div>
+
+									<div class="admin-metrics-note">
+										Фиксируются пользователи, которые находились на странице не менее 30 секунд видимого времени.
+									</div>
+
+									<div class="admin-metrics-grid">
+										<article class="admin-metric-card">
+											<div class="admin-metric-card__label">Всего посещений</div>
+											<div class="admin-metric-card__value" id="metricSiteTotalVisits">0</div>
+										</article>
+										<article class="admin-metric-card">
+											<div class="admin-metric-card__label">Сегодня</div>
+											<div class="admin-metric-card__value" id="metricSiteTodayVisits">0</div>
+										</article>
+										<article class="admin-metric-card">
+											<div class="admin-metric-card__label">Уникальных IP</div>
+											<div class="admin-metric-card__value" id="metricSiteUniqueIps">0</div>
+										</article>
+									</div>
+
+									<div class="admin-vacancies-empty" id="metricsSiteVisitsEmpty" hidden>
+										Посещений страницы пока нет.
+									</div>
+
+									<div class="admin-vacancies-list" id="metricsSiteVisitsList"></div>
+								</section>
+
+								<section class="admin-section admin-section_full">
 									<div class="admin-metrics-tabs" id="metricsTabs" role="tablist" aria-label="Срезы метрик">
 										<button class="admin-metrics-tab is-active" data-metrics-tab="vacancies" type="button" role="tab" aria-selected="true">
 											По вакансиям
@@ -750,6 +786,37 @@
 					<button
 						class="admin-btn"
 						id="cancelResetVacancyButton"
+						type="button"
+					>
+						Отмена
+					</button>
+				</div>
+			</div>
+		</div>
+
+		<div class="admin-modal" id="deleteUserModal" hidden>
+			<div class="admin-modal__backdrop" data-close-user-delete-modal></div>
+			<div
+				class="admin-modal__dialog"
+				role="dialog"
+				aria-modal="true"
+				aria-labelledby="deleteUserTitle"
+			>
+				<h2 class="admin-modal__title" id="deleteUserTitle">
+					Удалить пользователя?
+				</h2>
+				<p class="admin-modal__text" id="deleteUserText"></p>
+				<div class="admin-modal__actions">
+					<button
+						class="admin-btn admin-btn_danger"
+						id="confirmDeleteUserButton"
+						type="button"
+					>
+						Удалить пользователя
+					</button>
+					<button
+						class="admin-btn"
+						id="cancelDeleteUserButton"
 						type="button"
 					>
 						Отмена

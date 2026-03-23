@@ -15,6 +15,7 @@ func registerRoutes(app *fiber.App, db *gorm.DB, staticHTTPFS http.FileSystem, s
 
 	app.Get("/api/vacancies", h.GetPublicVacancies)
 	app.Post("/api/metrics/vacancy-view", h.TrackVacancyView)
+	app.Post("/api/metrics/site-visit", h.TrackSiteVisit)
 	app.Get("/api/contacts", h.GetContacts)
 	app.Get("/api/meta", h.GetAdminMeta)
 
@@ -52,6 +53,7 @@ func registerRoutes(app *fiber.App, db *gorm.DB, staticHTTPFS http.FileSystem, s
 	adminAPI.Get("/users", h.GetAdminUsers)
 	adminAPI.Post("/users", h.CreateAdminUser)
 	adminAPI.Put("/users/:id", h.UpdateAdminUser)
+	adminAPI.Delete("/users/:id", h.DeleteAdminUser)
 	adminAPI.Get("/metrics/vacancy-views", h.GetVacancyMetrics)
 
 	app.Use("/", filesystem.New(filesystem.Config{

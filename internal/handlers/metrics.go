@@ -15,6 +15,10 @@ type vacancyViewPayload struct {
 	PagePath  string `json:"pagePath"`
 }
 
+type siteVisitPayload struct {
+	PagePath string `json:"pagePath"`
+}
+
 type vacancyMetricSummaryResponse struct {
 	VacancyID    uint   `json:"vacancyId"`
 	Title        string `json:"title"`
@@ -38,9 +42,26 @@ type vacancyMetricsResponse struct {
 	TotalViews   int64                          `json:"totalViews"`
 	TodayViews   int64                          `json:"todayViews"`
 	UniqueIPs    int64                          `json:"uniqueIps"`
+	SiteVisits   siteVisitMetricsResponse       `json:"siteVisits"`
 	DailyViews   []vacancyDailyViewsResponse    `json:"dailyViews"`
 	Vacancies    []vacancyMetricSummaryResponse `json:"vacancies"`
 	RecentEvents []vacancyMetricEventResponse   `json:"recentEvents"`
+}
+
+type siteVisitMetricsResponse struct {
+	TotalVisits  int64                    `json:"totalVisits"`
+	TodayVisits  int64                    `json:"todayVisits"`
+	UniqueIPs    int64                    `json:"uniqueIps"`
+	RecentVisits []siteVisitEventResponse `json:"recentVisits"`
+}
+
+type siteVisitEventResponse struct {
+	ID        uint   `json:"id"`
+	IPAddress string `json:"ipAddress"`
+	UserAgent string `json:"userAgent"`
+	Referrer  string `json:"referrer"`
+	PagePath  string `json:"pagePath"`
+	VisitedAt string `json:"visitedAt"`
 }
 
 type vacancyDailyViewsResponse struct {
@@ -82,6 +103,15 @@ type vacancyDailyViewsRow struct {
 	ViewsCount int64
 }
 
+type siteVisitEventRow struct {
+	ID        uint
+	IPAddress string
+	UserAgent string
+	Referrer  string
+	PagePath  string
+	VisitedAt time.Time
+}
+
 func (h *Handler) TrackVacancyView(c *fiber.Ctx) error {
 	var payload vacancyViewPayload
 	if err := c.BodyParser(&payload); err != nil {
@@ -113,6 +143,27 @@ func (h *Handler) TrackVacancyView(c *fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusCreated)
 }
 
+func (h *Handler) TrackSiteVisit(c *fiber.Ctx) error {
+	var payload siteVisitPayload
+	if err := c.BodyParser(&payload); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "некорректные данные посещения"})
+	}
+
+	visit := models.SiteVisit{
+		IPAddress: strings.TrimSpace(c.IP()),
+		UserAgent: strings.TrimSpace(c.Get("User-Agent")),
+		Referrer:  strings.TrimSpace(c.Get("Referer")),
+		PagePath:  strings.TrimSpace(payload.PagePath),
+		VisitedAt: time.Now(),
+	}
+
+	if err := h.db.Create(&visit).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "не удалось сохранить посещение страницы"})
+	}
+
+	return c.SendStatus(fiber.StatusCreated)
+}
+
 func (h *Handler) GetVacancyMetrics(c *fiber.Ctx) error {
 	var totalViews int64
 	if err := h.db.Model(&models.VacancyView{}).Count(&totalViews).Error; err != nil {
@@ -129,6 +180,21 @@ func (h *Handler) GetVacancyMetrics(c *fiber.Ctx) error {
 
 	var uniqueIPs int64
 	if err := h.db.Model(&models.VacancyView{}).Distinct("ip_address").Count(&uniqueIPs).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "не удалось получить метрики"})
+	}
+
+	var totalSiteVisits int64
+	if err := h.db.Model(&models.SiteVisit{}).Count(&totalSiteVisits).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "не удалось получить метрики"})
+	}
+
+	var todaySiteVisits int64
+	if err := h.db.Model(&models.SiteVisit{}).Where("visited_at >= ?", startOfDay).Count(&todaySiteVisits).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "не удалось получить метрики"})
+	}
+
+	var uniqueSiteIPs int64
+	if err := h.db.Model(&models.SiteVisit{}).Distinct("ip_address").Count(&uniqueSiteIPs).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "не удалось получить метрики"})
 	}
 
@@ -165,10 +231,25 @@ func (h *Handler) GetVacancyMetrics(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "не удалось получить метрики"})
 	}
 
+	var siteVisitRows []siteVisitEventRow
+	if err := h.db.Table("site_visits").
+		Select("site_visits.id, site_visits.ip_address, site_visits.user_agent, site_visits.referrer, site_visits.page_path, site_visits.visited_at").
+		Order("site_visits.visited_at DESC").
+		Limit(30).
+		Scan(&siteVisitRows).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "не удалось получить метрики"})
+	}
+
 	response := vacancyMetricsResponse{
-		TotalViews:   totalViews,
-		TodayViews:   todayViews,
-		UniqueIPs:    uniqueIPs,
+		TotalViews: totalViews,
+		TodayViews: todayViews,
+		UniqueIPs:  uniqueIPs,
+		SiteVisits: siteVisitMetricsResponse{
+			TotalVisits:  totalSiteVisits,
+			TodayVisits:  todaySiteVisits,
+			UniqueIPs:    uniqueSiteIPs,
+			RecentVisits: make([]siteVisitEventResponse, 0, len(siteVisitRows)),
+		},
 		DailyViews:   buildDailyViewsResponse(startDate, dailyRows),
 		Vacancies:    make([]vacancyMetricSummaryResponse, 0, len(summaryRows)),
 		RecentEvents: make([]vacancyMetricEventResponse, 0, len(eventRows)),
@@ -194,6 +275,17 @@ func (h *Handler) GetVacancyMetrics(c *fiber.Ctx) error {
 			Referrer:  row.Referrer,
 			PagePath:  row.PagePath,
 			ViewedAt:  formatOptionalTime(row.ViewedAt),
+		})
+	}
+
+	for _, row := range siteVisitRows {
+		response.SiteVisits.RecentVisits = append(response.SiteVisits.RecentVisits, siteVisitEventResponse{
+			ID:        row.ID,
+			IPAddress: row.IPAddress,
+			UserAgent: row.UserAgent,
+			Referrer:  row.Referrer,
+			PagePath:  row.PagePath,
+			VisitedAt: formatOptionalTime(row.VisitedAt),
 		})
 	}
 

@@ -34,6 +34,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 	tabsFilter()
 	selectFilter()
 	initVacancyViewTracking()
+	initSiteVisitTracking()
 })
 
 async function renderVacancies(onLoaded) {
@@ -236,6 +237,80 @@ function initVacancyViewTracking() {
 		const vacancyId = event.detail?.vacancyId || ''
 		syncTracking(vacancyId)
 	})
+}
+
+function initSiteVisitTracking() {
+	const requiredVisibleMs = 30000
+	let remainingMs = requiredVisibleMs
+	let timerId = null
+	let timerStartedAt = 0
+	let sent = false
+
+	const clearTimer = () => {
+		if (timerId) {
+			window.clearTimeout(timerId)
+			timerId = null
+		}
+	}
+
+	const pauseTracking = () => {
+		if (!timerId || sent) return
+		const elapsed = Date.now() - timerStartedAt
+		remainingMs = Math.max(0, remainingMs - elapsed)
+		clearTimer()
+	}
+
+	const sendVisit = async () => {
+		if (sent) return
+		sent = true
+		clearTimer()
+
+		try {
+			const response = await fetch('/api/metrics/site-visit', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					Accept: 'application/json',
+				},
+				credentials: 'same-origin',
+				body: JSON.stringify({
+					pagePath: `${window.location.pathname}${window.location.hash || ''}`,
+				}),
+			})
+
+			if (!response.ok) {
+				throw new Error(`Site visit metric failed: ${response.status}`)
+			}
+		} catch (error) {
+			console.error(error)
+		}
+	}
+
+	const resumeTracking = () => {
+		if (sent || document.hidden || remainingMs <= 0) {
+			if (!sent && remainingMs <= 0) {
+				void sendVisit()
+			}
+			return
+		}
+
+		clearTimer()
+		timerStartedAt = Date.now()
+		timerId = window.setTimeout(() => {
+			remainingMs = 0
+			void sendVisit()
+		}, remainingMs)
+	}
+
+	document.addEventListener('visibilitychange', () => {
+		if (document.hidden) {
+			pauseTracking()
+			return
+		}
+		resumeTracking()
+	})
+
+	resumeTracking()
 }
 
 function renderVacancyColumn(title, items) {

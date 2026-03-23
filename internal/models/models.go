@@ -65,6 +65,16 @@ type VacancyView struct {
 	Vacancy   Vacancy `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;foreignKey:VacancyID"`
 }
 
+type SiteVisit struct {
+	ID        uint `gorm:"primaryKey"`
+	IPAddress string
+	UserAgent string
+	Referrer  string
+	PagePath  string
+	VisitedAt time.Time `gorm:"index;not null"`
+	CreatedAt time.Time
+}
+
 func SplitLines(value string) []string {
 	if strings.TrimSpace(value) == "" {
 		return nil
