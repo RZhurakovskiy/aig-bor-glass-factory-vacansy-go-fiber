@@ -2,6 +2,7 @@ export function createPreloader() {
 	const preloader = document.getElementById('preloader')
 	const percent = document.getElementById('preloaderPercent')
 	const status = document.getElementById('preloaderStatus')
+	const progressBar = document.getElementById('preloaderBar')
 	const navBar = document.querySelector('.nav-bar')
 
 	if (!preloader) {
@@ -18,6 +19,9 @@ export function createPreloader() {
 		if (percent) {
 			percent.textContent = `${currentProgress}%`
 		}
+		if (progressBar) {
+			progressBar.style.width = `${currentProgress}%`
+		}
 		if (status && text) {
 			status.textContent = text
 		}
@@ -29,10 +33,10 @@ export function createPreloader() {
 		if (navBar) {
 			navBar.classList.remove('hidden')
 		}
-		preloader.classList.add('hidden')
+		preloader.classList.add('is-closing')
 		window.setTimeout(() => {
 			preloader.style.display = 'none'
-		}, 500)
+		}, 920)
 	}
 
 	setProgress(5, 'Подготавливаем страницу')

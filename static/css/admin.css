@@ -991,6 +991,12 @@ select.admin-input {
 	color: var(--admin-muted);
 }
 
+#metricsSiteVisitsList {
+	max-height: min(60vh, 520px);
+	overflow-y: auto;
+	padding-right: 6px;
+}
+
 .admin-status-note.is-error {
 	color: #b42318;
 }

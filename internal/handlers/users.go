@@ -56,6 +56,9 @@ func (h *Handler) CreateAdminUser(c *fiber.Ctx) error {
 	if password == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "пароль обязателен"})
 	}
+	if len(password) < 6 {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "пароль должен содержать не менее 6 символов"})
+	}
 
 	role, err := normalizeAdminUserRole(payload.Role)
 	if err != nil {
@@ -128,8 +131,12 @@ func (h *Handler) UpdateAdminUser(c *fiber.Ctx) error {
 		user.IsRoot = true
 	}
 
-	if !user.IsRoot && strings.TrimSpace(payload.Password) != "" {
-		hash, err := bcrypt.GenerateFromPassword([]byte(strings.TrimSpace(payload.Password)), bcrypt.DefaultCost)
+	password := strings.TrimSpace(payload.Password)
+	if !user.IsRoot && password != "" {
+		if len(password) < 6 {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "пароль должен содержать не менее 6 символов"})
+		}
+		hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "не удалось обновить пароль пользователя"})
 		}

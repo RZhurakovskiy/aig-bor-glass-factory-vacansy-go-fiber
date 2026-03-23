@@ -105,9 +105,8 @@ async function renderVacancies(onLoaded) {
 								<div class="vacancy-card__description">
 									${renderVacancyColumn('Обязанности', vacancy.dutiesList)}
 									${renderVacancyColumn('Требования', vacancy.requirementsList)}
-									${renderVacancyColumn('Условия', vacancy.conditionsList)}
+									${renderVacancyColumn('Условия', vacancy.conditionsList, vacancy.id)}
 								</div>
-								<div class="vacancy-card__view-anchor" id="vacancy-view-anchor-${escapeAttribute(vacancy.id)}" data-vacancy-view-anchor="${escapeAttribute(vacancy.id)}" aria-hidden="true"></div>
 							</article>
 						`
 					)
@@ -313,8 +312,12 @@ function initSiteVisitTracking() {
 	resumeTracking()
 }
 
-function renderVacancyColumn(title, items) {
+function renderVacancyColumn(title, items, vacancyId = '') {
 	const safeItems = toArray(items)
+	const viewAnchor =
+		title === 'Условия' && vacancyId
+			? `<div class="vacancy-card__view-anchor" id="vacancy-view-anchor-${escapeAttribute(vacancyId)}" data-vacancy-view-anchor="${escapeAttribute(vacancyId)}" aria-hidden="true"></div>`
+			: ''
 	return `
 		<div class="vacancy-card__description-item">
 			<h4>${title}</h4>
@@ -325,6 +328,7 @@ function renderVacancyColumn(title, items) {
 			</ul>`
 					: '<p class="vacancy-card__description-empty">Данных нет</p>'
 			}
+			${viewAnchor}
 		</div>
 	`
 }

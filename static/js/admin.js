@@ -1035,11 +1035,19 @@ async function handleUserSubmit(event) {
 
 	const formData = new FormData(elements.userForm)
 	const userId = Number(formData.get('id') || 0)
+	const password = String(formData.get('password') ?? '').trim()
 	const payload = {
 		login: readText(formData.get('login')),
-		password: String(formData.get('password') ?? '').trim(),
+		password,
 		role: readText(formData.get('role')),
 		active: formData.get('active') === 'on',
+	}
+
+	if ((!userId || password) && password.length < 6) {
+		const message = 'Пароль должен содержать не менее 6 символов.'
+		setUserStatus(message, true)
+		showToast(message, 'error')
+		return
 	}
 
 	elements.saveUserButton.disabled = true

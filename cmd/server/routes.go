@@ -38,6 +38,7 @@ func registerRoutes(app *fiber.App, db *gorm.DB, staticHTTPFS http.FileSystem, s
 	app.Get("/admin/:section/", h.RequireAdmin, serveAdminSection(staticFS))
 
 	adminAPI := app.Group("/api/admin", h.RequireAdmin)
+
 	adminAPI.Get("/vacancies", h.GetAdminVacancies)
 	adminAPI.Get("/vacancies/trash", h.GetAdminTrashVacancies)
 	adminAPI.Post("/vacancies", h.CreateVacancy)
@@ -56,6 +57,7 @@ func registerRoutes(app *fiber.App, db *gorm.DB, staticHTTPFS http.FileSystem, s
 	adminAPI.Delete("/users/:id", h.DeleteAdminUser)
 	adminAPI.Get("/metrics/vacancy-views", h.GetVacancyMetrics)
 
+	// для 404
 	app.Use("/", filesystem.New(filesystem.Config{
 		Root:         staticHTTPFS,
 		Index:        "index.html",
