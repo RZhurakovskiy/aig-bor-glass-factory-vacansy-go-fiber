@@ -23,6 +23,7 @@ import (
 )
 
 var appVersion = "dev"
+var webVersion = "dev"
 
 func main() {
 	dbPath := loadDatabasePath()
@@ -137,7 +138,7 @@ func resetAdminPassword(db *gorm.DB, login, password string) error {
 func newHandler(db *gorm.DB) *handlers.Handler {
 	sessionSecret := mustLoadSessionSecret()
 
-	return handlers.New(db, []byte(sessionSecret), 24*time.Hour, appVersion)
+	return handlers.New(db, []byte(sessionSecret), 24*time.Hour, appVersion, webVersion)
 }
 
 func seedDatabase(db *gorm.DB) error {

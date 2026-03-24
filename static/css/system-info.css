@@ -1,0 +1,163 @@
+:root {
+	color-scheme: light;
+	--system-info-bg: radial-gradient(
+			circle at top left,
+			rgba(112, 136, 150, 0.08),
+			transparent 28%
+		),
+		linear-gradient(180deg, #f8fbff 0%, #eef3f9 100%);
+	--system-info-text: #1f2937;
+	--system-info-muted: #667085;
+	--system-info-card-bg: rgba(255, 255, 255, 0.94);
+	--system-info-card-border: rgba(17, 24, 39, 0.08);
+	--system-info-row-bg: rgba(248, 250, 252, 0.9);
+	--system-info-row-border: rgba(17, 24, 39, 0.08);
+	--system-info-shadow: 0 10px 28px rgba(15, 23, 42, 0.08),
+		0 2px 8px rgba(15, 23, 42, 0.05);
+	--system-info-accent: #2d2d2d;
+}
+
+:root[data-theme='dark'] {
+	color-scheme: dark;
+	--system-info-bg: #181c22;
+	--system-info-text: #f3f4f6;
+	--system-info-muted: #99a7ba;
+	--system-info-card-bg: rgba(21, 27, 35, 0.94);
+	--system-info-card-border: rgba(153, 167, 186, 0.16);
+	--system-info-row-bg: rgba(30, 41, 59, 0.72);
+	--system-info-row-border: rgba(153, 167, 186, 0.16);
+	--system-info-shadow: 0 10px 28px rgba(0, 0, 0, 0.22),
+		0 2px 8px rgba(0, 0, 0, 0.16);
+}
+
+* {
+	box-sizing: border-box;
+}
+
+body.system-info-body {
+	margin: 0;
+	min-height: 100vh;
+	font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text',
+		'Helvetica Neue', Arial, sans-serif;
+	background: var(--system-info-bg);
+	color: var(--system-info-text);
+}
+
+.system-info-layout {
+	min-height: 100vh;
+	display: grid;
+	place-items: center;
+	padding: 32px 16px;
+}
+
+.system-info-card {
+	width: min(720px, 100%);
+	padding: 28px;
+	border: 1px solid var(--system-info-card-border);
+	border-radius: 20px;
+	background: var(--system-info-card-bg);
+	box-shadow: var(--system-info-shadow);
+	backdrop-filter: blur(16px);
+	-webkit-backdrop-filter: blur(16px);
+}
+
+.system-info-card__head {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 16px;
+	margin-bottom: 24px;
+}
+
+.system-info-card__eyebrow {
+	display: inline-flex;
+	align-items: center;
+	min-height: 32px;
+	padding: 0 12px;
+	margin-bottom: 14px;
+	border-radius: 999px;
+	border: 1px solid var(--system-info-card-border);
+	font-size: 12px;
+	font-weight: 800;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: var(--system-info-muted);
+}
+
+.system-info-card__title {
+	margin: 0 0 8px;
+	font-size: 32px;
+	line-height: 1.04;
+	letter-spacing: -0.03em;
+}
+
+.system-info-card__subtitle {
+	margin: 0;
+	color: var(--system-info-muted);
+	line-height: 1.5;
+}
+
+.system-info-card__back {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 44px;
+	padding: 0 16px;
+	border-radius: 12px;
+	border: 1px solid var(--system-info-card-border);
+	color: var(--system-info-text);
+	text-decoration: none;
+	font-weight: 700;
+}
+
+.system-info-card__back:hover {
+	background: rgba(112, 136, 150, 0.1);
+}
+
+.system-info-grid {
+	display: grid;
+	gap: 12px;
+}
+
+.system-info-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	padding: 16px 18px;
+	border-radius: 14px;
+	border: 1px solid var(--system-info-row-border);
+	background: var(--system-info-row-bg);
+}
+
+.system-info-row__label {
+	font-size: 14px;
+	font-weight: 700;
+	color: var(--system-info-muted);
+}
+
+.system-info-row__value {
+	font-size: 15px;
+	font-weight: 700;
+	text-align: right;
+}
+
+.system-info-row__value_code {
+	font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+}
+
+@media (max-width: 640px) {
+	.system-info-card {
+		padding: 22px 18px;
+	}
+
+	.system-info-card__head,
+	.system-info-row {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.system-info-row__value {
+		text-align: left;
+	}
+}

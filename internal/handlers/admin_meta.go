@@ -13,6 +13,7 @@ import (
 
 type adminMetaResponse struct {
 	Version       string `json:"version"`
+	WebVersion    string `json:"webVersion"`
 	GoVersion     string `json:"goVersion"`
 	Platform      string `json:"platform"`
 	Hostname      string `json:"hostname"`
@@ -25,6 +26,10 @@ func (h *Handler) GetAdminMeta(c *fiber.Ctx) error {
 	version := strings.TrimSpace(h.appVersion)
 	if version == "" {
 		version = "dev"
+	}
+	webVersion := strings.TrimSpace(h.webVersion)
+	if webVersion == "" {
+		webVersion = "dev"
 	}
 
 	hostname, err := os.Hostname()
@@ -40,7 +45,8 @@ func (h *Handler) GetAdminMeta(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(adminMetaResponse{
-		Version:       fmt.Sprintf("Go server %s", version),
+		Version:       version,
+		WebVersion:    webVersion,
 		GoVersion:     runtime.Version(),
 		Platform:      fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH),
 		Hostname:      hostname,

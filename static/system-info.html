@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ru">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Техническая информация</title>
+		<link
+			rel="icon"
+			type="image/png"
+			href="/img/favicons/favicon-96x96.png"
+			sizes="96x96"
+		/>
+		<link rel="icon" type="image/svg+xml" href="/img/favicons/favicon.svg" />
+		<link rel="shortcut icon" href="/img/favicons/favicon.ico" />
+		<link
+			rel="apple-touch-icon"
+			sizes="180x180"
+			href="/img/favicons/apple-touch-icon.png"
+		/>
+		<script>
+			;(() => {
+				const storageKey = 'admin-theme-mode'
+				const root = document.documentElement
+				const mode = localStorage.getItem(storageKey) || 'light'
+				const prefersDark = window.matchMedia(
+					'(prefers-color-scheme: dark)'
+				).matches
+				const resolved =
+					mode === 'system' ? (prefersDark ? 'dark' : 'light') : mode
+				root.dataset.themeMode = mode
+				root.dataset.theme = resolved
+				root.style.colorScheme = resolved
+			})()
+		</script>
+		<link rel="stylesheet" href="/css/system-info.css" />
+	</head>
+	<body class="system-info-body">
+		<main class="system-info-layout">
+			<section class="system-info-card">
+				<div class="system-info-card__head">
+					<div>
+						<div class="system-info-card__eyebrow">Системная информация</div>
+						<h1 class="system-info-card__title">Техническая информация</h1>
+						<p class="system-info-card__subtitle">
+							Версии приложения и параметры текущего окружения сервера.
+						</p>
+					</div>
+					<a class="system-info-card__back" href="/admin/login">К входу</a>
+				</div>
+
+				<div class="system-info-grid">
+					<div class="system-info-row">
+						<span class="system-info-row__label">Версия сервера</span>
+						<span class="system-info-row__value" id="systemInfoServerVersion">Загрузка...</span>
+					</div>
+					<div class="system-info-row">
+						<span class="system-info-row__label">Версия веб-части</span>
+						<span class="system-info-row__value system-info-row__value_code" id="systemInfoWebVersion">Загрузка...</span>
+					</div>
+					<div class="system-info-row">
+						<span class="system-info-row__label">Go runtime</span>
+						<span class="system-info-row__value system-info-row__value_code" id="systemInfoGoVersion">Загрузка...</span>
+					</div>
+					<div class="system-info-row">
+						<span class="system-info-row__label">Платформа</span>
+						<span class="system-info-row__value system-info-row__value_code" id="systemInfoPlatform">Загрузка...</span>
+					</div>
+					<div class="system-info-row">
+						<span class="system-info-row__label">Система</span>
+						<span class="system-info-row__value" id="systemInfoOsName">Загрузка...</span>
+					</div>
+					<div class="system-info-row">
+						<span class="system-info-row__label">Хост</span>
+						<span class="system-info-row__value system-info-row__value_code" id="systemInfoHostname">Загрузка...</span>
+					</div>
+				</div>
+			</section>
+		</main>
+
+		<script src="/js/system-info.js"></script>
+	</body>
+</html>

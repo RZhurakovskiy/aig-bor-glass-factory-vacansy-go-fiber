@@ -9,10 +9,7 @@ const elements = {
 	infoDockButton: document.getElementById('infoDockButton'),
 	infoDockPanel: document.getElementById('infoDockPanel'),
 	serverVersionValue: document.getElementById('serverVersionValue'),
-	serverGoVersionValue: document.getElementById('serverGoVersionValue'),
-	serverPlatformValue: document.getElementById('serverPlatformValue'),
-	serverOsValue: document.getElementById('serverOsValue'),
-	serverHostValue: document.getElementById('serverHostValue'),
+	webVersionValue: document.getElementById('webVersionValue'),
 	themeSwitcher: document.getElementById('themeSwitcher'),
 	themeSystemButton: document.getElementById('themeSystemButton'),
 	adminMapPreview: document.getElementById('adminMapPreview'),
@@ -340,17 +337,8 @@ async function refreshAdminMeta() {
 	if (elements.serverVersionValue) {
 		elements.serverVersionValue.textContent = meta.version || 'unknown'
 	}
-	if (elements.serverGoVersionValue) {
-		elements.serverGoVersionValue.textContent = meta.goVersion || 'unknown'
-	}
-	if (elements.serverPlatformValue) {
-		elements.serverPlatformValue.textContent = meta.platform || 'unknown'
-	}
-	if (elements.serverOsValue) {
-		elements.serverOsValue.textContent = meta.osName || 'unknown'
-	}
-	if (elements.serverHostValue) {
-		elements.serverHostValue.textContent = meta.hostname || 'unknown'
+	if (elements.webVersionValue) {
+		elements.webVersionValue.textContent = meta.webVersion || 'unknown'
 	}
 }
 
@@ -360,17 +348,8 @@ function handleAdminMetaError(error) {
 	if (elements.serverVersionValue) {
 		elements.serverVersionValue.textContent = 'Недоступно'
 	}
-	if (elements.serverGoVersionValue) {
-		elements.serverGoVersionValue.textContent = 'Недоступно'
-	}
-	if (elements.serverPlatformValue) {
-		elements.serverPlatformValue.textContent = 'Недоступно'
-	}
-	if (elements.serverOsValue) {
-		elements.serverOsValue.textContent = 'Недоступно'
-	}
-	if (elements.serverHostValue) {
-		elements.serverHostValue.textContent = 'Недоступно'
+	if (elements.webVersionValue) {
+		elements.webVersionValue.textContent = 'Недоступно'
 	}
 }
 

@@ -27,14 +27,22 @@ type Handler struct {
 	sessionSecret []byte
 	sessionTTL    time.Duration
 	appVersion    string
+	webVersion    string
 }
 
-func New(db *gorm.DB, sessionSecret []byte, sessionTTL time.Duration, appVersion string) *Handler {
+func New(
+	db *gorm.DB,
+	sessionSecret []byte,
+	sessionTTL time.Duration,
+	appVersion string,
+	webVersion string,
+) *Handler {
 	return &Handler{
 		db:            db,
 		sessionSecret: sessionSecret,
 		sessionTTL:    sessionTTL,
 		appVersion:    appVersion,
+		webVersion:    webVersion,
 	}
 }
 

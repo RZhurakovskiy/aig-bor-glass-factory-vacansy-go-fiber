@@ -1339,6 +1339,17 @@ select.admin-input {
 	font-size: 14px;
 }
 
+.admin-info-panel__link {
+	color: var(--admin-text);
+	font-size: 14px;
+	font-weight: 700;
+	text-decoration: none;
+}
+
+.admin-info-panel__link:hover {
+	color: var(--admin-muted);
+}
+
 .admin-theme-switcher {
 	display: grid;
 	grid-template-columns: repeat(3, minmax(0, 1fr));

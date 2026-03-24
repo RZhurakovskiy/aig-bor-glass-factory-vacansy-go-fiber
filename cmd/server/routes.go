@@ -18,6 +18,7 @@ func registerRoutes(app *fiber.App, db *gorm.DB, staticHTTPFS http.FileSystem, s
 	app.Post("/api/metrics/site-visit", h.TrackSiteVisit)
 	app.Get("/api/contacts", h.GetContacts)
 	app.Get("/api/meta", h.GetAdminMeta)
+	app.Get("/system-info", serveStaticPage(staticFS, "system-info.html"))
 
 	app.Get("/admin/login", serveStaticPage(staticFS, "admin-login.html"))
 	app.Post("/admin/login", h.Login)

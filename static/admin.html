@@ -40,7 +40,9 @@
 				<header class="admin-topbar">
 					<div class="admin-topbar__content">
 						<div class="admin-topbar__meta">
-							<div class="admin-topbar__chip" id="adminRoleChip">Администратор</div>
+							<div class="admin-topbar__chip" id="adminRoleChip">
+								Администратор
+							</div>
 						</div>
 						<h1 class="admin-topbar__title">Управление сайтом</h1>
 						<p class="admin-topbar__subtitle">
@@ -135,9 +137,7 @@
 									></span>
 									<span class="admin-sidebar__link-body">
 										<span class="admin-sidebar__link-title">Пользователи</span>
-										<span class="admin-sidebar__link-note"
-											>Доступ и роли</span
-										>
+										<span class="admin-sidebar__link-note">Доступ и роли</span>
 									</span>
 								</a>
 								<a
@@ -506,7 +506,9 @@
 									<section class="admin-section">
 										<div class="admin-section__header">
 											<div>
-												<h2 class="admin-section__title">Редактор пользователя</h2>
+												<h2 class="admin-section__title">
+													Редактор пользователя
+												</h2>
 												<p class="admin-section__subtitle" id="userFormTitle">
 													Создание новой учетной записи
 												</p>
@@ -553,7 +555,9 @@
 												<label class="admin-field">
 													<span class="admin-field__label">Роль</span>
 													<select class="admin-input" name="role" required>
-														<option value="hr">HR / Главный администратор</option>
+														<option value="hr">
+															HR / Главный администратор
+														</option>
 														<option value="admin">Администратор</option>
 													</select>
 												</label>
@@ -608,16 +612,33 @@
 
 									<div class="admin-metrics-grid" id="metricsSummary">
 										<article class="admin-metric-card">
-											<div class="admin-metric-card__label">Всего просмотров</div>
-											<div class="admin-metric-card__value" id="metricTotalViews">0</div>
+											<div class="admin-metric-card__label">
+												Всего просмотров
+											</div>
+											<div
+												class="admin-metric-card__value"
+												id="metricTotalViews"
+											>
+												0
+											</div>
 										</article>
 										<article class="admin-metric-card">
 											<div class="admin-metric-card__label">Сегодня</div>
-											<div class="admin-metric-card__value" id="metricTodayViews">0</div>
+											<div
+												class="admin-metric-card__value"
+												id="metricTodayViews"
+											>
+												0
+											</div>
 										</article>
 										<article class="admin-metric-card">
 											<div class="admin-metric-card__label">Уникальных IP</div>
-											<div class="admin-metric-card__value" id="metricUniqueIps">0</div>
+											<div
+												class="admin-metric-card__value"
+												id="metricUniqueIps"
+											>
+												0
+											</div>
 										</article>
 									</div>
 								</section>
@@ -625,7 +646,9 @@
 								<section class="admin-section admin-section_full">
 									<div class="admin-section__header">
 										<div>
-											<h2 class="admin-section__title">Посещаемость страницы</h2>
+											<h2 class="admin-section__title">
+												Посещаемость страницы
+											</h2>
 											<p class="admin-section__subtitle">
 												Отдельный учет посещений главной страницы сайта.
 											</p>
@@ -633,45 +656,96 @@
 									</div>
 
 									<div class="admin-metrics-note">
-										Фиксируются пользователи, которые находились на странице не менее 30 секунд видимого времени.
+										Фиксируются пользователи, которые находились на странице не
+										менее 30 секунд видимого времени.
 									</div>
 
 									<div class="admin-metrics-grid">
 										<article class="admin-metric-card">
-											<div class="admin-metric-card__label">Всего посещений</div>
-											<div class="admin-metric-card__value" id="metricSiteTotalVisits">0</div>
+											<div class="admin-metric-card__label">
+												Всего посещений
+											</div>
+											<div
+												class="admin-metric-card__value"
+												id="metricSiteTotalVisits"
+											>
+												0
+											</div>
 										</article>
 										<article class="admin-metric-card">
 											<div class="admin-metric-card__label">Сегодня</div>
-											<div class="admin-metric-card__value" id="metricSiteTodayVisits">0</div>
+											<div
+												class="admin-metric-card__value"
+												id="metricSiteTodayVisits"
+											>
+												0
+											</div>
 										</article>
 										<article class="admin-metric-card">
 											<div class="admin-metric-card__label">Уникальных IP</div>
-											<div class="admin-metric-card__value" id="metricSiteUniqueIps">0</div>
+											<div
+												class="admin-metric-card__value"
+												id="metricSiteUniqueIps"
+											>
+												0
+											</div>
 										</article>
 									</div>
 
-									<div class="admin-vacancies-empty" id="metricsSiteVisitsEmpty" hidden>
+									<div
+										class="admin-vacancies-empty"
+										id="metricsSiteVisitsEmpty"
+										hidden
+									>
 										Посещений страницы пока нет.
 									</div>
 
-									<div class="admin-vacancies-list" id="metricsSiteVisitsList"></div>
+									<div
+										class="admin-vacancies-list"
+										id="metricsSiteVisitsList"
+									></div>
 								</section>
 
 								<section class="admin-section admin-section_full">
-									<div class="admin-metrics-tabs" id="metricsTabs" role="tablist" aria-label="Срезы метрик">
-										<button class="admin-metrics-tab is-active" data-metrics-tab="vacancies" type="button" role="tab" aria-selected="true">
+									<div
+										class="admin-metrics-tabs"
+										id="metricsTabs"
+										role="tablist"
+										aria-label="Срезы метрик"
+									>
+										<button
+											class="admin-metrics-tab is-active"
+											data-metrics-tab="vacancies"
+											type="button"
+											role="tab"
+											aria-selected="true"
+										>
 											По вакансиям
 										</button>
-										<button class="admin-metrics-tab" data-metrics-tab="daily" type="button" role="tab" aria-selected="false">
+										<button
+											class="admin-metrics-tab"
+											data-metrics-tab="daily"
+											type="button"
+											role="tab"
+											aria-selected="false"
+										>
 											По дням
 										</button>
-										<button class="admin-metrics-tab" data-metrics-tab="events" type="button" role="tab" aria-selected="false">
+										<button
+											class="admin-metrics-tab"
+											data-metrics-tab="events"
+											type="button"
+											role="tab"
+											aria-selected="false"
+										>
 											Последние просмотры
 										</button>
 									</div>
 
-									<div class="admin-metrics-panel" data-metrics-panel="vacancies">
+									<div
+										class="admin-metrics-panel"
+										data-metrics-panel="vacancies"
+									>
 										<div class="admin-section__header">
 											<div>
 												<h2 class="admin-section__title">По вакансиям</h2>
@@ -681,14 +755,25 @@
 											</div>
 										</div>
 
-										<div class="admin-vacancies-empty" id="metricsVacanciesEmpty" hidden>
+										<div
+											class="admin-vacancies-empty"
+											id="metricsVacanciesEmpty"
+											hidden
+										>
 											Пока нет зафиксированных просмотров вакансий.
 										</div>
 
-										<div class="admin-vacancies-list" id="metricsVacanciesList"></div>
+										<div
+											class="admin-vacancies-list"
+											id="metricsVacanciesList"
+										></div>
 									</div>
 
-									<div class="admin-metrics-panel" data-metrics-panel="daily" hidden>
+									<div
+										class="admin-metrics-panel"
+										data-metrics-panel="daily"
+										hidden
+									>
 										<div class="admin-section__header">
 											<div>
 												<h2 class="admin-section__title">Просмотры по дням</h2>
@@ -698,30 +783,50 @@
 											</div>
 										</div>
 
-										<div class="admin-vacancies-empty" id="metricsDailyEmpty" hidden>
+										<div
+											class="admin-vacancies-empty"
+											id="metricsDailyEmpty"
+											hidden
+										>
 											За последние 14 дней просмотров пока нет.
 										</div>
 
-										<div class="admin-metrics-legend" id="metricsDailyLegend"></div>
+										<div
+											class="admin-metrics-legend"
+											id="metricsDailyLegend"
+										></div>
 
 										<div class="admin-metrics-days" id="metricsDailyList"></div>
 									</div>
 
-									<div class="admin-metrics-panel" data-metrics-panel="events" hidden>
+									<div
+										class="admin-metrics-panel"
+										data-metrics-panel="events"
+										hidden
+									>
 										<div class="admin-section__header">
 											<div>
-												<h2 class="admin-section__title">Последние просмотры</h2>
+												<h2 class="admin-section__title">
+													Последние просмотры
+												</h2>
 												<p class="admin-section__subtitle">
 													Недавние события по просмотрам карточек вакансий.
 												</p>
 											</div>
 										</div>
 
-										<div class="admin-vacancies-empty" id="metricsEventsEmpty" hidden>
+										<div
+											class="admin-vacancies-empty"
+											id="metricsEventsEmpty"
+											hidden
+										>
 											Событий просмотров пока нет.
 										</div>
 
-										<div class="admin-vacancies-list" id="metricsEventsList"></div>
+										<div
+											class="admin-vacancies-list"
+											id="metricsEventsList"
+										></div>
 									</div>
 								</section>
 							</section>
@@ -784,11 +889,7 @@
 					>
 						Очистить форму
 					</button>
-					<button
-						class="admin-btn"
-						id="cancelResetVacancyButton"
-						type="button"
-					>
+					<button class="admin-btn" id="cancelResetVacancyButton" type="button">
 						Отмена
 					</button>
 				</div>
@@ -815,11 +916,7 @@
 					>
 						Удалить пользователя
 					</button>
-					<button
-						class="admin-btn"
-						id="cancelDeleteUserButton"
-						type="button"
-					>
+					<button class="admin-btn" id="cancelDeleteUserButton" type="button">
 						Отмена
 					</button>
 				</div>
@@ -902,39 +999,16 @@
 						>
 					</div>
 					<div class="admin-info-panel__row">
-						<span class="admin-info-panel__label">Go runtime</span>
+						<span class="admin-info-panel__label">Версия веб-части</span>
 						<span
 							class="admin-info-panel__value admin-info-panel__value_code"
-							id="serverGoVersionValue"
-						>
-							Загрузка...
-						</span>
-					</div>
-					<div class="admin-info-panel__row">
-						<span class="admin-info-panel__label">Платформа</span>
-						<span
-							class="admin-info-panel__value admin-info-panel__value_code"
-							id="serverPlatformValue"
-						>
-							Загрузка...
-						</span>
-					</div>
-					<div class="admin-info-panel__row">
-						<span class="admin-info-panel__label">Система</span>
-						<span class="admin-info-panel__value" id="serverOsValue"
-							>Загрузка...</span
-						>
-					</div>
-					<div class="admin-info-panel__row">
-						<span class="admin-info-panel__label">Хост</span>
-						<span
-							class="admin-info-panel__value admin-info-panel__value_code"
-							id="serverHostValue"
+							id="webVersionValue"
 						>
 							Загрузка...
 						</span>
 					</div>
 				</div>
+				<a class="admin-info-panel__link" href="/system-info">Техническая информация</a>
 				<div class="admin-info-panel__group">
 					<div class="admin-info-panel__label">Тема</div>
 					<div class="admin-theme-switcher" id="themeSwitcher">

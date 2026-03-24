@@ -10,10 +10,7 @@ const elements = {
 	infoButton: document.getElementById('loginInfoDockButton'),
 	infoPanel: document.getElementById('loginInfoDockPanel'),
 	serverVersionValue: document.getElementById('serverVersionValue'),
-	serverGoVersionValue: document.getElementById('serverGoVersionValue'),
-	serverPlatformValue: document.getElementById('serverPlatformValue'),
-	serverOsValue: document.getElementById('serverOsValue'),
-	serverHostValue: document.getElementById('serverHostValue'),
+	webVersionValue: document.getElementById('webVersionValue'),
 	themeSwitcher: document.getElementById('themeSwitcher'),
 	themeSystemButton: document.getElementById('themeSystemButton'),
 }
@@ -149,27 +146,12 @@ async function refreshMeta() {
 		if (elements.serverVersionValue) {
 			elements.serverVersionValue.textContent = meta.version || 'Недоступно'
 		}
-		if (elements.serverGoVersionValue) {
-			elements.serverGoVersionValue.textContent = meta.goVersion || 'Недоступно'
-		}
-		if (elements.serverPlatformValue) {
-			elements.serverPlatformValue.textContent = meta.platform || 'Недоступно'
-		}
-		if (elements.serverOsValue) {
-			elements.serverOsValue.textContent = meta.osName || 'Недоступно'
-		}
-		if (elements.serverHostValue) {
-			elements.serverHostValue.textContent = meta.hostname || 'Недоступно'
+		if (elements.webVersionValue) {
+			elements.webVersionValue.textContent = meta.webVersion || 'Недоступно'
 		}
 	} catch (error) {
 		console.error(error)
-		;[
-			elements.serverVersionValue,
-			elements.serverGoVersionValue,
-			elements.serverPlatformValue,
-			elements.serverOsValue,
-			elements.serverHostValue,
-		].forEach(element => {
+		;[elements.serverVersionValue, elements.webVersionValue].forEach(element => {
 			if (element) element.textContent = 'Недоступно'
 		})
 	}

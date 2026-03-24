@@ -381,6 +381,17 @@ body.login-body {
 	font-size: 14px;
 }
 
+.login-info-panel__link {
+	color: var(--login-text);
+	font-size: 14px;
+	font-weight: 700;
+	text-decoration: none;
+}
+
+.login-info-panel__link:hover {
+	color: var(--login-muted);
+}
+
 .login-theme-switcher {
 	display: grid;
 	grid-template-columns: repeat(2, minmax(0, 1fr));
