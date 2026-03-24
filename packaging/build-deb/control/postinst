@@ -1,6 +1,21 @@
 #!/bin/sh
 set -e
 
+ENV_DIR="/etc/glass-factory"
+ENV_FILE="$ENV_DIR/glass-factory.env"
+
+mkdir -p "$ENV_DIR"
+
+if [ ! -f "$ENV_FILE" ]; then
+	umask 077
+	SESSION_SECRET="$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c 64)"
+	cat >"$ENV_FILE" <<EOF
+SESSION_SECRET=$SESSION_SECRET
+TRUSTED_PROXIES=127.0.0.1,::1
+BOOTSTRAP_ADMIN_PASSWORD=SPlbcnQ9
+EOF
+fi
+
 systemctl daemon-reload >/dev/null 2>&1 || true
 
 exit 0

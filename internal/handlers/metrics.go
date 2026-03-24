@@ -117,12 +117,16 @@ func logRequestIPSource(c *fiber.Ctx, event string) {
 	log.Printf(
 		"%s ip_source resolved_ip=%q remote_addr=%q x_forwarded_for=%q x_real_ip=%q cf_connecting_ip=%q",
 		event,
-		strings.TrimSpace(c.IP()),
+		clientIP(c),
 		strings.TrimSpace(c.Context().RemoteAddr().String()),
 		strings.TrimSpace(c.Get("X-Forwarded-For")),
 		strings.TrimSpace(c.Get("X-Real-IP")),
 		strings.TrimSpace(c.Get("CF-Connecting-IP")),
 	)
+}
+
+func clientIP(c *fiber.Ctx) string {
+	return strings.TrimSpace(c.IP())
 }
 
 func (h *Handler) TrackVacancyView(c *fiber.Ctx) error {
@@ -144,7 +148,7 @@ func (h *Handler) TrackVacancyView(c *fiber.Ctx) error {
 
 	view := models.VacancyView{
 		VacancyID: payload.VacancyID,
-		IPAddress: strings.TrimSpace(c.IP()),
+		IPAddress: clientIP(c),
 		UserAgent: strings.TrimSpace(c.Get("User-Agent")),
 		Referrer:  strings.TrimSpace(c.Get("Referer")),
 		PagePath:  strings.TrimSpace(payload.PagePath),
@@ -167,7 +171,7 @@ func (h *Handler) TrackSiteVisit(c *fiber.Ctx) error {
 	logRequestIPSource(c, "track_site_visit")
 
 	visit := models.SiteVisit{
-		IPAddress: strings.TrimSpace(c.IP()),
+		IPAddress: clientIP(c),
 		UserAgent: strings.TrimSpace(c.Get("User-Agent")),
 		Referrer:  strings.TrimSpace(c.Get("Referer")),
 		PagePath:  strings.TrimSpace(payload.PagePath),

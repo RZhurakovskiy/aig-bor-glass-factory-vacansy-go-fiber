@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/rand"
 	"encoding/base64"
+	"flag"
 	"fmt"
 	"io/fs"
 	"log"
@@ -24,13 +25,21 @@ import (
 var appVersion = "dev"
 
 func main() {
-	db, err := gorm.Open(sqlite.Open("glass-factory.db"), &gorm.Config{})
+	dbPath := loadDatabasePath()
+	db, err := openDatabase(dbPath)
 	if err != nil {
 		log.Fatalf("ошибка открытия базы данных: %v", err)
 	}
 
 	if err := db.AutoMigrate(&models.Vacancy{}, &models.Contact{}, &models.AdminUser{}, &models.VacancyView{}, &models.SiteVisit{}); err != nil {
 		log.Fatalf("ошибка миграции базы данных: %v", err)
+	}
+
+	if handled, err := handleCLI(db); handled {
+		if err != nil {
+			log.Fatalf("ошибка выполнения команды: %v", err)
+		}
+		return
 	}
 
 	if err := seedDatabase(db); err != nil {
@@ -42,13 +51,87 @@ func main() {
 		log.Fatalf("ошибка подготовки статики: %v", err)
 	}
 
-	app := fiber.New()
+	trustedProxies := loadTrustedProxies()
+	app := fiber.New(fiber.Config{
+		ProxyHeader:             fiber.HeaderXForwardedFor,
+		EnableTrustedProxyCheck: true,
+		TrustedProxies:          trustedProxies,
+		EnableIPValidation:      true,
+	})
 	registerRoutes(app, db, http.FS(staticFS), staticFS)
 
+	log.Printf("trusted proxies configured: %s", strings.Join(trustedProxies, ", "))
 	log.Println("сервер запущен на http://localhost:8080")
 	if err := app.Listen(":8080"); err != nil {
 		log.Fatalf("ошибка запуска сервера: %v", err)
 	}
+}
+
+func loadDatabasePath() string {
+	if path := strings.TrimSpace(os.Getenv("DATABASE_PATH")); path != "" {
+		return path
+	}
+	return "glass-factory.db"
+}
+
+func openDatabase(path string) (*gorm.DB, error) {
+	return gorm.Open(sqlite.Open(path), &gorm.Config{})
+}
+
+func handleCLI(db *gorm.DB) (bool, error) {
+	if len(os.Args) < 2 {
+		return false, nil
+	}
+
+	switch os.Args[1] {
+	case "reset-admin-password":
+		fs := flag.NewFlagSet("reset-admin-password", flag.ContinueOnError)
+		fs.SetOutput(os.Stderr)
+
+		login := fs.String("login", "", "admin login")
+		password := fs.String("password", "", "new password")
+
+		if err := fs.Parse(os.Args[2:]); err != nil {
+			return true, err
+		}
+
+		if strings.TrimSpace(*login) == "" {
+			return true, fmt.Errorf("не задан --login")
+		}
+		if strings.TrimSpace(*password) == "" {
+			return true, fmt.Errorf("не задан --password")
+		}
+		if fs.NArg() > 0 {
+			return true, fmt.Errorf("неподдерживаемые позиционные аргументы: %s", strings.Join(fs.Args(), " "))
+		}
+
+		return true, resetAdminPassword(db, *login, *password)
+	default:
+		return false, nil
+	}
+}
+
+func resetAdminPassword(db *gorm.DB, login, password string) error {
+	var user models.AdminUser
+	normalizedLogin := strings.ToLower(strings.TrimSpace(login))
+	if err := db.Where("login = ?", normalizedLogin).First(&user).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return fmt.Errorf("пользователь %q не найден", normalizedLogin)
+		}
+		return err
+	}
+
+	hash, err := bcrypt.GenerateFromPassword([]byte(strings.TrimSpace(password)), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+
+	if err := db.Model(&user).Update("password_hash", string(hash)).Error; err != nil {
+		return err
+	}
+
+	log.Printf("пароль администратора %q обновлен", normalizedLogin)
+	return nil
 }
 
 func newHandler(db *gorm.DB) *handlers.Handler {
@@ -180,10 +263,42 @@ func generateSessionSecret() (string, error) {
 }
 
 func mustLoadSessionSecret() string {
+	if secret := strings.TrimSpace(os.Getenv("SESSION_SECRET")); secret != "" {
+		return secret
+	}
+
 	generated, err := generateSessionSecret()
 	if err != nil {
 		log.Fatalf("ошибка генерации секрета сессии: %v", err)
 	}
-	log.Println("секрет сессии сгенерирован автоматически для текущего запуска сервера")
+	log.Println("SESSION_SECRET не задан, секрет сессии сгенерирован автоматически для текущего запуска сервера")
 	return generated
+}
+
+func loadTrustedProxies() []string {
+	raw := strings.TrimSpace(os.Getenv("TRUSTED_PROXIES"))
+	if raw == "" {
+		return []string{"127.0.0.1", "::1"}
+	}
+
+	parts := strings.Split(raw, ",")
+	proxies := make([]string, 0, len(parts))
+	seen := make(map[string]struct{}, len(parts))
+	for _, part := range parts {
+		proxy := strings.TrimSpace(part)
+		if proxy == "" {
+			continue
+		}
+		if _, exists := seen[proxy]; exists {
+			continue
+		}
+		seen[proxy] = struct{}{}
+		proxies = append(proxies, proxy)
+	}
+
+	if len(proxies) == 0 {
+		return []string{"127.0.0.1", "::1"}
+	}
+
+	return proxies
 }
