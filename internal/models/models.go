@@ -57,19 +57,19 @@ type AdminUser struct {
 
 type VacancyView struct {
 	ID        uint `gorm:"primaryKey"`
-	VacancyID uint `gorm:"index;not null"`
-	IPAddress string
+	VacancyID uint `gorm:"index;index:idx_vacancy_views_viewed_at_vacancy_id;not null"`
+	IPAddress string `gorm:"index"`
 	UserAgent string
 	Referrer  string
 	PagePath  string
-	ViewedAt  time.Time `gorm:"index;not null"`
+	ViewedAt  time.Time `gorm:"index;index:idx_vacancy_views_viewed_at_vacancy_id;not null"`
 	CreatedAt time.Time
 	Vacancy   Vacancy `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;foreignKey:VacancyID"`
 }
 
 type SiteVisit struct {
 	ID        uint `gorm:"primaryKey"`
-	IPAddress string
+	IPAddress string `gorm:"index"`
 	UserAgent string
 	Referrer  string
 	PagePath  string
